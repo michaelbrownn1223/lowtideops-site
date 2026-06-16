@@ -1503,6 +1503,18 @@ const PROJECT_DATA = {
   commentFormBaseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf9kAl2ILVGWO6vq4gv39o7BdsPWh0tbpxC9zqyw1raa_o5Zw/formResponse",
   commentFormSectionEntry: "entry.327168658",   // Section field
   commentFormTextEntry:    "entry.1151286004",  // Comment field
+
+  // ── DECISION LOGGING ────────────────────────
+  // Create a Google Form with 3 fields: Project, Decision Item, Selection
+  // Paste the formResponse URL and entry IDs below
+  decisionFormBaseUrl:      "https://docs.google.com/forms/d/e/1FAIpQLSf6SFJBb-sjofYXI9BwcmXr_Q5yP0Jj1k-Pp43ief1vUO4C7A/formResponse",
+  decisionFormProjectEntry: "entry.419697874",   // Project field
+  decisionFormItemEntry:    "entry.1469796741",  // Decision item field
+  decisionFormTextEntry:    "entry.1130654960",  // Selection text field
+
+  // ── INSPIRATION FOLDER ──────────────────────
+  // One shared Google Drive folder per project — set Contributor access
+  inspirationFolderUrl: "https://drive.google.com/drive/folders/1Aj5HXSC-9dG7JBBHVIQDKaU5WLgDlPKU?usp=sharing",
   // ownerQuestions: populated weekly from submitted questions
   feedbackUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeMNgZfxWHw21eecUljKHQdDKjf7uOwdx8qutZsircJDWAg0g/viewform",
   ownerQuestions: [
@@ -2176,16 +2188,49 @@ function renderDashboard() {
     .sort((a, b) => daysUntil(a.dueDate) - daysUntil(b.dueDate))
     .map((dec, i) => {
       const days = daysUntil(dec.dueDate);
+      const sid  = 'sel-' + i;
+      const safeItem = dec.item.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       return `
-        <div class="ledger-row ${i === 0 ? 'bg-red-50/30' : ''}">
-          <div>
+        <div class="ledger-row ${i === 0 ? 'bg-red-50/30' : ''}" style="flex-wrap:wrap;">
+          <div style="width:100%;min-width:0;">
             <div class="text-[11px] font-medium text-midnight">
               ${dec.item}
               ${i === 0 ? '<span class="ml-2 text-[7px] tracking-[0.15em] uppercase text-risk font-bold">Critical Path</span>' : ''}
             </div>
             <div class="text-[10px] text-taupe mt-1">${dec.context}</div>
+            <div class="flex gap-2 mt-2 flex-wrap no-print">
+              <button
+                onclick="toggleSelectionPanel('${sid}')"
+                id="btn-${sid}"
+                style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;padding:5px 10px;border:1px solid #2E86AB;color:#2E86AB;border-radius:4px;background:transparent;cursor:pointer;">
+                ✎ Record My Selection
+              </button>
+              <a href="${D.inspirationFolderUrl}" target="_blank"
+                style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;padding:5px 10px;border:1px solid #D6D3CB;color:#6B7280;border-radius:4px;text-decoration:none;display:inline-block;">
+                📎 Share Inspiration Files
+              </a>
+            </div>
+            <div id="${sid}" style="display:none;margin-top:10px;padding:12px;background:#F0EDE6;border:1px solid #D6D3CB;border-radius:6px;">
+              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:#6B7280;margin-bottom:8px;">Your Selection — ${dec.item}</div>
+              <textarea id="txt-${sid}"
+                placeholder="Describe your selection — e.g. 'We've chosen the Hardie lap siding in Iron Gray, 6-inch exposure.' Be as specific as you like."
+                style="width:100%;font-size:11px;color:#1A1F2E;background:white;border:1px solid #D6D3CB;border-radius:4px;padding:8px;resize:none;font-family:Inter,sans-serif;box-sizing:border-box;" rows="3"></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                <button onclick="submitSelection('${sid}', '${safeItem}')"
+                  style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;padding:5px 12px;background:#2E86AB;color:white;border:none;border-radius:4px;cursor:pointer;">
+                  Submit Selection
+                </button>
+                <button onclick="toggleSelectionPanel('${sid}')"
+                  style="font-size:9px;color:#6B7280;background:none;border:none;cursor:pointer;">
+                  Cancel
+                </button>
+              </div>
+              <div id="conf-${sid}" style="display:none;margin-top:8px;font-size:10px;color:#2A6049;font-weight:500;">
+                ✓ Selection recorded — your builder will confirm receipt in the next update.
+              </div>
+            </div>
           </div>
-          <div>${statusBadge(dec.status)}</div>
+          <div style="margin-top:8px;">${statusBadge(dec.status)}</div>
           <div>
             <div class="font-mono text-[11px] text-midnight">${dec.dueDate}</div>
             <div class="mt-1">${urgencyBadge(dec.urgency, days)}</div>
@@ -2370,6 +2415,58 @@ function toggleCat(i) {
   txn.classList.toggle('open', !isOpen);
   chev.classList.toggle('open', !isOpen);
   if (!isOpen) lucide.createIcons();
+}
+
+// ── SELECTION LEDGER ACTIONS ─────────────────
+function toggleSelectionPanel(sid) {
+  const panel = document.getElementById(sid);
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+}
+
+function submitSelection(sid, itemLabel) {
+  const ta   = document.getElementById('txt-' + sid);
+  const conf = document.getElementById('conf-' + sid);
+  if (!ta) return;
+  const text = ta.value.trim();
+  if (!text) {
+    ta.style.borderColor = '#8B2635';
+    setTimeout(() => { ta.style.borderColor = '#D6D3CB'; }, 2000);
+    return;
+  }
+
+  const projectName = PROJECT_DATA.project ? PROJECT_DATA.project.name : 'Project';
+  const fullItem    = '[' + projectName + '] ' + itemLabel;
+
+  // POST silently to Google Form
+  if (PROJECT_DATA.decisionFormBaseUrl && !PROJECT_DATA.decisionFormBaseUrl.includes('YOUR_DECISION_FORM_ID')) {
+    const params = new URLSearchParams();
+    params.set(PROJECT_DATA.decisionFormProjectEntry, projectName);
+    params.set(PROJECT_DATA.decisionFormItemEntry,    itemLabel);
+    params.set(PROJECT_DATA.decisionFormTextEntry,    text);
+    fetch(PROJECT_DATA.decisionFormBaseUrl + '?' + params.toString(), {
+      method: 'POST',
+      mode: 'no-cors',
+    }).catch(() => {});
+  }
+
+  // Show success state
+  ta.style.display = 'none';
+  const btns = ta.parentElement.querySelectorAll('button');
+  btns.forEach(b => b.style.display = 'none');
+  if (conf) conf.style.display = 'block';
+
+  // Update the Record button to show submitted state
+  const btn = document.getElementById('btn-' + sid);
+  if (btn) {
+    btn.textContent = '✓ Selection Recorded';
+    btn.style.borderColor = '#2A6049';
+    btn.style.color = '#2A6049';
+    btn.disabled = true;
+  }
+
+  lucide.createIcons();
 }
 
 // ── SECTION COMMENTS ─────────────────────────
