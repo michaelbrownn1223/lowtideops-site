@@ -1,0 +1,1146 @@
+<!-- Device detection — runs before first paint, no flash -->      
+<style>/* ── BASE ── */
+    html { scroll-behavior: smooth; }
+    body { background: #FDFBF7; color: #1A1F2E; font-family: 'Inter', sans-serif; }
+    /* ── DEVICE-AWARE FIRST PAINT ── */
+    /* Applied before CSS loads — no layout flash on mobile */
+    html.is-mobile body,
+    html.is-tablet body {
+      -webkit-text-size-adjust: 100%;
+      touch-action: pan-y;
+    }
+    /* Mobile header — hide desktop-only elements immediately */
+    html.is-mobile #header-weather,
+    html.is-mobile #header-date { display: none !important; }
+    /* Mobile hero — stack from first paint */
+    html.is-mobile .hero-inner-grid {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 1.25rem !important;
+    }
+    html.is-mobile #hero-pct-wrap {
+      text-align: left !important;
+      margin-left: 0 !important;
+    }
+    html.is-mobile #hero-pct-wrap .w-48 { width: 100% !important; }
+    /* Mobile financial matrix — 2 cols from first paint */
+    html.is-mobile .fin-row {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    html.is-mobile .fin-row .fin-cell:nth-child(2) { border-right: none !important; }
+    html.is-mobile .fin-row .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5) !important; }
+    html.is-mobile .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5) !important; border-right: none !important; }
+    html.is-mobile .fin-value { font-size: 17px !important; }
+    /* Mobile tap targets — larger, more comfortable */
+    html.is-mobile #gate-input  { padding: 14px 18px; font-size: 16px !important; }
+    html.is-mobile #gate-btn    { padding: 14px; min-height: 48px; }
+    html.is-mobile .accordion-trigger { min-height: 48px; }
+    html.is-mobile .hz-tab      { min-height: 40px; padding: 8px 12px; }
+    /* Mobile spacing */
+    html.is-mobile main {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      padding-top: 1.75rem !important;
+    }
+    html.is-mobile .max-w-7xl {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+    }
+    html.is-mobile header .max-w-7xl {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+    /* Mobile ledger — 2 cols */
+    html.is-mobile .ledger-row {
+      grid-template-columns: 1fr auto !important;
+      gap: 8px !important;
+    }
+    html.is-mobile .ledger-row > *:nth-child(3),
+    html.is-mobile .ledger-row > *:nth-child(4),
+    html.is-mobile .ledger-header > *:nth-child(3),
+    html.is-mobile .ledger-header > *:nth-child(4) { display: none !important; }
+    /* Mobile timeline — 3 cols */
+    html.is-mobile .timeline-item {
+      grid-template-columns: 40px 1fr auto !important;
+      gap: 10px !important;
+    }
+    html.is-mobile .timeline-item .badge { display: none !important; }
+    /* Mobile PCO — 2 cols */
+    html.is-mobile .pco-grid { grid-template-columns: 1fr auto !important; }
+    html.is-mobile .pco-grid > *:nth-child(3),
+    html.is-mobile .pco-grid > *:nth-child(4) { display: none !important; }
+    /* Mobile hide budget bar column */
+    html.is-mobile .budget-cat-bar-col { display: none !important; }
+    html.is-mobile .budget-cat-grid    { grid-template-columns: 1fr auto auto !important; }
+    /* Mobile PCO summary */
+    html.is-mobile #pco-summary { flex-wrap: wrap !important; gap: 0.75rem !important; }
+    /* Mobile footer */
+    html.is-mobile footer .max-w-7xl { flex-direction: column !important; gap: 0.75rem !important; }
+    /* Mobile gate form width */
+    html.is-mobile #gate-form { width: 88vw; max-width: 320px; }
+    /* Tablet — slightly looser than mobile */
+    html.is-tablet .fin-row { grid-template-columns: 1fr 1fr !important; }
+    html.is-tablet .fin-row .fin-cell:nth-child(2) { border-right: none !important; }
+    html.is-tablet .fin-row .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5) !important; }
+    html.is-tablet .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5) !important; border-right: none !important; }
+    html.is-tablet .ledger-row > *:nth-child(4) { display: none !important; }
+    html.is-tablet .ledger-header > *:nth-child(4) { display: none !important; }
+    /* Extra small phones */
+    @media (max-width: 380px) {
+      html.is-mobile .fin-row { grid-template-columns: 1fr !important; }
+      html.is-mobile .fin-cell { border-right: none !important; border-top: 1px solid rgba(214,211,203,0.4) !important; }
+      html.is-mobile .fin-cell:first-child { border-top: none !important; }
+      h1.font-serif { font-size: 1.5rem !important; }
+    }
+    /* ── PASSWORD GATE ── */
+    #gate {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #1A1F2E;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    #gate-horizon {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -160px);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .gate-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #2E86AB;
+      animation: gateDotRise 2s ease-in-out infinite alternate;
+    }
+    .gate-line {
+      width: 80px; height: 1px; background: rgba(46,134,171,0.4);
+    }
+    @keyframes gateDotRise {
+      0%   { transform: translateY(3px); opacity: 0.6; }
+      100% { transform: translateY(-3px); opacity: 1; }
+    }
+    #gate-form { width: 320px; text-align: center; }
+    #gate-name {
+      font-size: 9px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: #2E86AB;
+      margin-bottom: 8px; display: block;
+    }
+    #gate-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; color: #fff;
+      margin-bottom: 4px;
+    }
+    #gate-sub {
+      font-size: 11px; color: #6B7280;
+      letter-spacing: 0.08em;
+      margin-bottom: 32px;
+    }
+    #gate-input {
+      width: 100%; padding: 12px 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; letter-spacing: 0.1em;
+      text-align: center; outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 12px;
+    }
+    #gate-input:focus { border-color: rgba(46,134,171,0.6); }
+    #gate-input::placeholder { color: rgba(255,255,255,0.2); }
+    #gate-btn {
+      width: 100%; padding: 12px;
+      background: #2E86AB; color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      border: none; cursor: pointer;
+      transition: background 0.2s;
+    }
+    #gate-btn:hover { background: #1C4F72; }
+    #gate-error {
+      font-size: 10px; color: #8B2635;
+      letter-spacing: 0.1em; margin-top: 10px;
+      min-height: 16px; display: block;
+    }
+    #gate-footer {
+      position: absolute; bottom: 2rem;
+      font-size: 9px; letter-spacing: 0.15em;
+      color: rgba(107,114,128,0.5); text-transform: uppercase;
+    }
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; min-height: 100vh; }
+    #dashboard.visible { display: block; animation: fadeIn 0.6s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* ── HORIZON MARK ── */
+    .horizon-mark {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px 0 16px;
+    }
+    .horizon-mark::before {
+      content: ''; position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 1px; background: rgba(26,31,46,0.12);
+    }
+    .horizon-mark-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #2E86AB; position: relative; z-index: 1;
+      box-shadow: 0 0 0 3px #FDFBF7;
+    }
+    /* ── SECTION HEADER ── */
+    .section-eyebrow {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: #6B7280;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .section-eyebrow::before {
+      content: ''; display: block;
+      width: 20px; height: 1px;
+      background: #2E86AB; opacity: 0.6; flex-shrink: 0;
+    }
+    /* ── FINANCIAL MATRIX ── */
+    .fin-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      border-bottom: 1px solid rgba(214,211,203,0.5);
+    }
+    .fin-row:last-child { border-bottom: none; }
+    .fin-cell {
+      padding: 1.25rem 1.5rem;
+      border-right: 1px solid rgba(214,211,203,0.5);
+    }
+    .fin-cell:last-child { border-right: none; }
+    .fin-label {
+      font-size: 8px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: #9CA3AF;
+      margin-bottom: 6px;
+    }
+    .fin-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px; font-weight: 500;
+      color: #1A1F2E; line-height: 1;
+      margin-bottom: 4px;
+    }
+    .fin-note {
+      font-size: 9px; color: #9CA3AF;
+      line-height: 1.4;
+    }
+    .fin-value.variance-positive { color: #2A6049; }
+    .fin-value.variance-negative { color: #8B2635; }
+    .fin-value.variance-pending  { color: #B5621A; }
+    /* ── PROGRESS BAR ── */
+    .progress-track {
+      height: 3px; background: #F0EDE6;
+      border: 1px solid #D6D3CB;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%; transition: width 1.2s ease;
+    }
+    /* ── TIMELINE ── */
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 52px 1fr auto auto;
+      gap: 16px; align-items: center;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid rgba(214,211,203,0.4);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .tl-horizon {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.05em; color: #9CA3AF;
+      text-transform: uppercase;
+    }
+    .tl-status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    /* ── SELECTION LEDGER ── */
+    .ledger-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 120px 130px;
+      gap: 12px; align-items: start;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(214,211,203,0.4);
+    }
+    .ledger-row:last-child { border-bottom: none; }
+    .ledger-header {
+      font-size: 8px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: #9CA3AF; padding-bottom: 0.6rem;
+      border-bottom: 1px solid #D6D3CB;
+    }
+    .urgency-pill {
+      display: inline-flex; align-items: center;
+      gap: 5px; font-size: 8px;
+      font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 3px 8px;
+    }
+    /* ── ACCORDION ── */
+    .accordion-item {
+      border-bottom: 1px solid rgba(214,211,203,0.5);
+    }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-trigger {
+      width: 100%; display: flex;
+      align-items: center; justify-content: space-between;
+      padding: 1rem 0; cursor: pointer;
+      background: none; border: none;
+      text-align: left;
+    }
+    .accordion-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .accordion-body.open {
+      max-height: 400px;
+      padding-bottom: 1rem;
+    }
+    .accordion-chevron {
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+    .accordion-chevron.open { transform: rotate(180deg); }
+    /* ── STATUS BADGES ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      gap: 5px; font-size: 8px;
+      font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+    /* ── ANIMATIONS ── */
+    @keyframes horizonDraw {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+    .horizon-animate {
+      transform-origin: left;
+      animation: horizonDraw 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+    }
+    .section-header-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .section-header-wrap .section-eyebrow {
+      margin-bottom: 0;
+    }
+    .comment-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      background: none;
+      border: 1px solid rgba(214,211,203,0.6);
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .comment-trigger:hover {
+      color: #2E86AB;
+      border-color: rgba(46,134,171,0.4);
+      background: rgba(46,134,171,0.04);
+    }
+    .comment-trigger.has-comments {
+      color: #2E86AB;
+      border-color: rgba(46,134,171,0.35);
+      background: rgba(46,134,171,0.06);
+    }
+    .comment-panel {
+      background: #FDFBF7;
+      border: 1px solid rgba(214,211,203,0.7);
+      border-left: 3px solid #2E86AB;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .comment-panel.open {
+      max-height: 400px;
+      opacity: 1;
+    }
+    .comment-panel-inner {
+      padding: 1rem 1.25rem;
+    }
+    .comment-panel-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #2E86AB;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comment-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .comment-textarea {
+      flex: 1;
+      border: 1px solid rgba(214,211,203,0.8);
+      background: #fff;
+      padding: 8px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: #1A1F2E;
+      outline: none;
+      resize: none;
+      min-height: 60px;
+      line-height: 1.5;
+      transition: border-color 0.2s;
+    }
+    .comment-textarea:focus { border-color: #2E86AB; }
+    .comment-textarea::placeholder { color: #9CA3AF; }
+    .comment-submit {
+      padding: 8px 16px;
+      background: #2E86AB;
+      color: #fff;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      align-self: flex-end;
+      min-height: 60px;
+    }
+    .comment-submit:hover { background: #1C4F72; }
+    .comment-submitted {
+      display: none;
+      font-size: 11px;
+      color: #2A6049;
+      font-weight: 500;
+      padding: 8px 0;
+      align-items: center;
+      gap: 6px;
+    }
+    .comment-note {
+      font-size: 9px;
+      color: #9CA3AF;
+      margin-top: 6px;
+      font-style: italic;
+    }
+    /* Hide comment triggers on print */
+    @media print {
+      .comment-trigger,
+      .comment-panel { display: none !important; }
+      .section-header-wrap { display: block !important; }
+    }
+    html.is-mobile .comment-trigger { font-size: 7px; padding: 4px 8px; }
+    #feedback-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: rgba(46,134,171,0.12);
+      border: 1px solid rgba(46,134,171,0.3);
+      color: #2E86AB;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    #feedback-btn:hover {
+      background: rgba(46,134,171,0.22);
+      border-color: rgba(46,134,171,0.55);
+    }
+    html.is-mobile #feedback-btn { font-size: 8px; padding: 5px 10px; }
+    /* ── Q&A SECTION ── */
+    .qa-item {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid rgba(214,211,203,0.4);
+    }
+    .qa-item:last-child { border-bottom: none; }
+    .qa-question {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 0.6rem;
+    }
+    .qa-q-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #2E86AB;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .qa-q-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1A1F2E;
+      line-height: 1.5;
+    }
+    .qa-answer {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding-left: 0;
+    }
+    .qa-a-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #2A6049;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .qa-a-text {
+      font-size: 11.5px;
+      color: #6B7280;
+      line-height: 1.65;
+    }
+    .qa-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #9CA3AF;
+      margin-top: 4px;
+    }
+    @media (max-width: 768px) {
+      /* Gate — tighter on small screens */
+      #gate-form { width: 88vw; max-width: 320px; }
+      #gate-title { font-size: 18px; }
+      #gate-input { font-size: 16px; } /* prevents iOS zoom */
+      /* Header — hide weather detail, compress */
+      #header-weather { display: none; }
+      #header-date    { display: none; }
+      .max-w-7xl { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+      header .max-w-7xl { padding-left: 1rem !important; padding-right: 1rem !important; }
+      /* Hero — stack vertically */
+      .hero-inner-grid {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1.5rem !important;
+      }
+      #hero-phase-badge { align-self: flex-start; }
+      #hero-pct-wrap { text-align: left !important; }
+      #hero-pct-wrap .w-48 { width: 100% !important; }
+      #hero-meta {
+        flex-wrap: wrap !important;
+        gap: 1rem 2rem !important;
+      }
+      h1.font-serif { font-size: 1.75rem !important; }
+      /* Main padding */
+      main { padding-left: 1.25rem !important; padding-right: 1.25rem !important; padding-top: 2rem !important; }
+      /* Financial matrix — 2 cols on mobile, stack rows */
+      .fin-row {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      .fin-row .fin-cell:nth-child(2) { border-right: none; }
+      .fin-row .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5); }
+      .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5); border-right: none; }
+      .fin-value { font-size: 17px !important; }
+      /* Budget category — hide progress bar col, simplify */
+      .budget-cat-grid { grid-template-columns: 1fr auto auto !important; }
+      .budget-cat-bar-col { display: none !important; }
+      /* Timeline — simplify columns */
+      .timeline-item {
+        grid-template-columns: 40px 1fr auto !important;
+        gap: 10px !important;
+      }
+      .timeline-item .badge { display: none !important; }
+      /* Ledger — stack to 2 cols, hide financial impact */
+      .ledger-row {
+        grid-template-columns: 1fr auto !important;
+        gap: 8px !important;
+      }
+      .ledger-row > *:nth-child(3),
+      .ledger-row > *:nth-child(4) { display: none !important; }
+      .ledger-header > *:nth-child(3),
+      .ledger-header > *:nth-child(4) { display: none !important; }
+      /* PCO list — stack to 2 cols */
+      .pco-grid { grid-template-columns: 1fr auto !important; }
+      .pco-grid > *:nth-child(3),
+      .pco-grid > *:nth-child(4) { display: none !important; }
+      /* Section eyebrow */
+      .section-eyebrow { font-size: 8px !important; }
+      /* PCO summary — wrap */
+      #pco-summary { flex-wrap: wrap !important; gap: 0.75rem !important; }
+      /* Horizon tabs */
+      #horizon-tabs { gap: 1rem !important; overflow-x: auto; }
+      /* Footer */
+      footer .max-w-7xl { flex-direction: column !important; gap: 0.75rem !important; }
+      /* Accordion — full width */
+      .accordion-trigger { padding: 0.875rem 0 !important; }
+    }
+    /* Extra small — phones under 380px */
+    @media (max-width: 380px) {
+      .fin-row { grid-template-columns: 1fr !important; }
+      .fin-cell { border-right: none !important; border-top: 1px solid rgba(214,211,203,0.4) !important; }
+      .fin-cell:first-child { border-top: none !important; }
+      h1.font-serif { font-size: 1.5rem !important; }
+    }
+    /* ── PRINT ── */
+    @media print {
+      #gate         { display: none !important; }
+      #dashboard    { display: block !important; }
+      #section-nav  { display: none !important; }
+      #print-btn    { display: none !important; }
+      .no-print     { display: none !important; }
+      header        { position: relative !important; }
+      body          { background: #fff !important; }
+      .fin-row      { grid-template-columns: 1fr 1fr !important; }
+      .fin-cell:nth-child(2) { border-right: none !important; }
+      .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5) !important; }
+      .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5) !important; border-right: none !important; }
+      .accordion-body { max-height: 600px !important; padding-bottom: 1rem !important; }
+      section { page-break-inside: avoid; margin-bottom: 2rem !important; }
+      .horizon-mark { display: none !important; }
+    }
+    /* ── SECTION NAV ── */
+    #section-nav {
+      background: #FDFBF7;
+      border-bottom: 1px solid rgba(214,211,203,0.6);
+      position: sticky;
+      top: 64px;
+      z-index: 40;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #section-nav::-webkit-scrollbar { display: none; }
+    .snav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      min-width: max-content;
+    }
+    .snav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.75rem 1.25rem;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .snav-btn:hover { color: #1A1F2E; }
+    .snav-btn.active {
+      color: #2E86AB;
+      border-bottom-color: #2E86AB;
+    }
+    .snav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .snav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      padding-left: 1.5rem;
+      border-left: 1px solid rgba(214,211,203,0.6);
+      gap: 1rem;
+    }
+    #print-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6B7280;
+      background: none;
+      border: 1px solid rgba(214,211,203,0.8);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    #print-btn:hover {
+      color: #1A1F2E;
+      border-color: #1A1F2E;
+    }
+    /* ── LAST UPDATED BANNER ── */
+    #last-updated-bar {
+      background: rgba(46,134,171,0.06);
+      border-bottom: 1px solid rgba(46,134,171,0.15);
+      padding: 0.6rem 0;
+    }
+    .last-updated-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .last-updated-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .last-updated-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #2E86AB;
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+    .last-updated-text {
+      font-size: 10px;
+      color: #1C4F72;
+      font-weight: 500;
+    }
+    .last-updated-text strong {
+      color: #1A1F2E;
+      font-weight: 600;
+    }
+    .last-updated-next {
+      font-size: 9px;
+      color: #9CA3AF;
+      letter-spacing: 0.05em;
+    }
+    /* ── EMPTY STATES ── */
+    .empty-state {
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      border: 1px dashed rgba(214,211,203,0.8);
+      background: rgba(244,240,230,0.3);
+    }
+    .empty-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(214,211,203,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .empty-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+    .empty-sub {
+      font-size: 11px;
+      color: #9CA3AF;
+      line-height: 1.6;
+      max-width: 36ch;
+      margin: 0 auto;
+    }
+    /* ── TRANSACTION LEDGER ── */
+    .cat-row {
+      border-bottom: 1px solid rgba(214,211,203,0.4);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-row:hover .cat-summary { background: rgba(244,240,230,0.6); }
+    .cat-summary {
+      display: grid;
+      grid-template-columns: 1fr 100px auto auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 0.85rem 1.5rem;
+      transition: background 0.15s;
+    }
+    .cat-chevron {
+      transition: transform 0.25s ease;
+      color: #9CA3AF;
+    }
+    .cat-chevron.open { transform: rotate(180deg); }
+    .cat-transactions {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      background: #FDFBF7;
+      border-top: 1px solid rgba(214,211,203,0);
+    }
+    .cat-transactions.open {
+      max-height: 800px;
+      border-top-color: rgba(214,211,203,0.4);
+    }
+    .txn-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .txn-header th {
+      padding: 0.5rem 1.5rem;
+      text-align: left;
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      background: rgba(214,211,203,0.15);
+      border-bottom: 1px solid rgba(214,211,203,0.5);
+    }
+    .txn-header th:last-child { text-align: right; }
+    .txn-row td {
+      padding: 0.65rem 1.5rem;
+      font-size: 10.5px;
+      border-bottom: 1px solid rgba(214,211,203,0.25);
+      vertical-align: middle;
+    }
+    .txn-row:last-child td { border-bottom: none; }
+    .txn-row:hover td { background: rgba(244,240,230,0.5); }
+    .txn-ref {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #9CA3AF;
+      white-space: nowrap;
+    }
+    .txn-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: #6B7280;
+      white-space: nowrap;
+    }
+    .txn-desc { color: #1A1F2E; }
+    .txn-amount {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 500;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .txn-status { white-space: nowrap; }
+    /* Transaction status pills */
+    .txn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 2px;
+    }
+    .txn-pill-paid       { background: rgba(42,96,73,0.08);  color: #2A6049; }
+    .txn-pill-pending    { background: rgba(181,98,26,0.08); color: #B5621A; }
+    .txn-pill-approved   { background: rgba(46,134,171,0.08);color: #1C4F72; }
+    .txn-pill-retainage  { background: rgba(107,114,128,0.1);color: #6B7280; }
+    /* Category totals row */
+    .txn-totals td {
+      padding: 0.6rem 1.5rem;
+      background: rgba(26,31,46,0.03);
+      border-top: 1.5px solid rgba(26,31,46,0.12);
+      font-size: 10px;
+      font-weight: 600;
+    }
+    /* Retainage note */
+    .retainage-note {
+      padding: 0.5rem 1.5rem;
+      font-size: 9px;
+      color: #9CA3AF;
+      font-style: italic;
+      background: rgba(214,211,203,0.1);
+      border-top: 1px solid rgba(214,211,203,0.3);
+    }
+    /* Mobile — simplify transaction table */
+    html.is-mobile .cat-summary {
+      grid-template-columns: 1fr auto auto !important;
+    }
+    html.is-mobile .cat-summary .budget-cat-bar-col,
+    html.is-mobile .txn-header th:nth-child(1),
+    html.is-mobile .txn-row td:nth-child(1) { display: none !important; }
+    html.is-mobile .txn-header th,
+    html.is-mobile .txn-row td { padding: 0.55rem 1rem !important; }
+    html.is-mobile .snav-right { display: none !important; }
+    html.is-mobile .snav-inner { padding: 0 1rem; }</style>
+<!-- ════════════════════════════════════════════
+     PASSWORD GATE
+════════════════════════════════════════════ -->
+<div id="gate">
+  <div id="gate-horizon">
+    <div class="gate-dot">&nbsp;</div>
+    <div class="gate-line">&nbsp;</div>
+  </div>
+  <div id="gate-form">
+    <span id="gate-name">Low Tide Ops</span>
+    <div id="gate-title">Executive Owner Portal</div>
+    <div id="gate-sub">Confidential · Authorized Access Only</div>
+    <input id="gate-input" autocomplete="off" type="password" placeholder="Enter access code"> 
+    <button id="gate-btn">Access Dashboard</button> 
+    <span id="gate-error"></span>
+  </div>
+  <div id="gate-footer">Low Tide Ops · San Clemente, CA</div>
+</div>
+<!-- ════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════ -->
+<div id="dashboard"><!-- ── SITE HEADER ── -->
+  <header class="bg-midnight border-b border-white/10 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-10 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="flex flex-col items-center gap-1">
+          <div class="w-2 h-2 rounded-full bg-tide">&nbsp;</div>
+          <div class="w-8 h-px bg-tide">&nbsp;</div>
+        </div>
+        <div>
+          <div class="text-[9px] tracking-architectural text-tide uppercase font-semibold">Low Tide Ops</div>
+          <div class="text-[8px] tracking-wide text-taupe uppercase">Executive Project Portal</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div id="header-weather" class="flex items-center gap-3 px-4 py-2 border border-white/10"><!-- injected --></div>
+        <div id="header-date" class="font-mono text-[10px] text-taupe">&nbsp;</div>
+        <div class="text-[8px] tracking-architectural text-taupe uppercase border-l border-white/10 pl-6">Confidential</div>
+      </div>
+    </div>
+  </header><!-- ── PROJECT HERO ── -->
+  <div class="bg-midnight border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-10 py-8 md:py-10">
+      <div class="flex items-end justify-between hero-inner-grid">
+        <div class="flex-1 min-w-0">
+          <div id="hero-label" class="text-[9px] tracking-architectural text-taupe uppercase mb-3">&nbsp;</div>
+          <h1 id="hero-project-name" class="font-serif text-4xl font-semibold text-white mb-2 tracking-tight">&nbsp;</h1>
+          <div id="hero-address" class="text-[11px] tracking-wide text-taupe">&nbsp;</div>
+          <div id="hero-meta" class="flex gap-8 mt-6 flex-wrap">&nbsp;</div>
+        </div>
+        <div id="hero-pct-wrap" class="flex flex-col items-end gap-4 flex-shrink-0 ml-8">
+          <div id="hero-phase-badge" class="flex items-center gap-3 px-4 py-2 border border-tide/40 bg-tide/10">&nbsp;</div>
+          <div class="text-right">
+            <div id="hero-pct" class="font-mono text-4xl font-medium text-white">&nbsp;</div>
+            <div class="text-[8px] tracking-architectural text-taupe uppercase mt-1">Overall Complete</div>
+            <div id="hero-progress-bar" class="w-48 mt-2">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- ── LAST UPDATED BAR ── -->
+  <div id="last-updated-bar">
+    <div class="last-updated-inner">
+      <div class="last-updated-left">
+        <div class="last-updated-dot">&nbsp;</div>
+        <span id="last-updated-text" class="last-updated-text">Loading...</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a id="feedback-btn" href="#" target="_blank" rel="noopener">Submit a Question</a> 
+        <span id="last-updated-next" class="last-updated-next"></span>
+      </div>
+    </div>
+  </div>
+<!-- ── SECTION NAV ── -->
+  <nav id="section-nav">
+    <div class="snav-inner">
+      <div class="snav-dot bg-tide">&nbsp;</div>
+      <button class="snav-btn active">Financial Matrix</button> 
+      <div class="snav-dot bg-taupe/60">&nbsp;</div>
+      <button class="snav-btn">Horizon Outlook</button> 
+      <div class="snav-dot bg-amber">&nbsp;</div>
+      <button class="snav-btn">Decisions</button> 
+      <div class="snav-dot bg-risk">&nbsp;</div>
+      <button class="snav-btn">Risks</button> 
+      <div class="snav-dot bg-taupe/60">&nbsp;</div>
+      <button class="snav-btn">Change Orders</button> 
+      <div class="snav-dot bg-tide/50">&nbsp;</div>
+      <button class="snav-btn">Questions</button>
+      <div class="snav-right no-print">
+        <button id="print-btn">Save PDF</button>
+      </div>
+    </div>
+  </nav><!-- ── MAIN CONTENT ── -->
+  <main class="max-w-7xl mx-auto px-10 py-12"><!-- ════ 1. MACRO VARIANCE LOG ════ -->
+    <section id="sec-financials" class="mb-16">
+      <div class="section-header-wrap">
+        <div class="section-eyebrow">Macro Variance Log — Financial Matrix</div>
+        <button class="comment-trigger no-print">Comment</button>
+      </div>
+      <div id="comment-financials" class="comment-panel no-print">
+        <div class="comment-panel-inner">
+          <div class="comment-panel-label">Comment on Financial Matrix</div>
+          <div class="comment-input-wrap">
+            <textarea id="ct-financials" class="comment-textarea" placeholder="Ask a question or leave a note about the financial data — e.g. 'Can you clarify the pending exposure on PCO-005?' Your builder will address this in next week's update."></textarea> 
+            <button class="comment-submit">Submit</button>
+          </div>
+          <div id="cs-financials" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
+        </div>
+      </div>
+      <div id="financial-matrix" class="border border-fog/60 bg-white mb-6">&nbsp;</div>
+      <div id="budget-progress-wrap" class="mt-4">&nbsp;</div>
+    </section>
+    <div class="horizon-mark">
+      <div class="horizon-mark-dot">&nbsp;</div>
+    </div>
+<!-- ════ 2. HORIZON OUTLOOK ════ -->
+    <section id="sec-horizon" class="mb-16 mt-10">
+      <div class="section-header-wrap">
+        <div class="section-eyebrow">Horizon Outlook — Critical Path</div>
+        <button class="comment-trigger no-print">Comment</button>
+      </div>
+      <div id="comment-horizon" class="comment-panel no-print">
+        <div class="comment-panel-inner">
+          <div class="comment-panel-label">Comment on Horizon Outlook</div>
+          <div class="comment-input-wrap">
+            <textarea id="ct-horizon" class="comment-textarea" placeholder="Ask about an upcoming milestone or schedule item — e.g. 'Is the July 3 framing completion still on track?' Your builder will address this in next week's update."></textarea> 
+            <button class="comment-submit">Submit</button>
+          </div>
+          <div id="cs-horizon" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
+        </div>
+      </div>
+      <div id="horizon-tabs" class="flex gap-6 mb-6 no-print">
+        <button class="hz-tab active text-[9px] tracking-wide uppercase font-semibold text-tide border-b border-tide pb-1">All</button> 
+        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">30 Days</button> 
+        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">60 Days</button> 
+        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">90 Days</button>
+      </div>
+      <div id="horizon-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+    </section>
+    <div class="horizon-mark">
+      <div class="horizon-mark-dot">&nbsp;</div>
+    </div>
+<!-- ════ 3. SELECTION LEDGER ════ -->
+    <section id="sec-decisions" class="mb-16 mt-10">
+      <div class="section-header-wrap">
+        <div class="section-eyebrow">Selection Ledger — Owner Decisions</div>
+        <button class="comment-trigger no-print">Comment</button>
+      </div>
+      <div id="comment-decisions" class="comment-panel no-print">
+        <div class="comment-panel-inner">
+          <div class="comment-panel-label">Comment on Decisions</div>
+          <div class="comment-input-wrap">
+            <textarea id="ct-decisions" class="comment-textarea" placeholder="Ask about a pending decision — e.g. 'We've selected the exterior cladding — how do we confirm this?' Your builder will address this in next week's update."></textarea> 
+            <button class="comment-submit">Submit</button>
+          </div>
+          <div id="cs-decisions" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
+        </div>
+      </div>
+      <div class="border border-fog/60 bg-white px-6">
+        <div class="ledger-row ledger-header">Decision ItemStatusDue DateFinancial Impact</div>
+        <div id="ledger-list">&nbsp;</div>
+      </div>
+    </section>
+    <div class="horizon-mark">
+      <div class="horizon-mark-dot">&nbsp;</div>
+    </div>
+<!-- ════ 4. DEFENSIVE MITIGATION ════ -->
+    <section id="sec-risks" class="mb-16 mt-10">
+      <div class="section-header-wrap">
+        <div class="section-eyebrow">Defensive Mitigation — Active Risk Strategy</div>
+        <div class="flex items-center gap-3">
+          <button class="comment-trigger no-print">Comment</button> 
+          <button class="no-print text-[9px] tracking-wide uppercase text-taupe hover:text-midnight transition-colors font-semibold">Expand All</button>
+        </div>
+      </div>
+      <div id="comment-risks" class="comment-panel no-print">
+        <div class="comment-panel-inner">
+          <div class="comment-panel-label">Comment on Risks &amp; Mitigation</div>
+          <div class="comment-input-wrap">
+            <textarea id="ct-risks" class="comment-textarea" placeholder="Ask about an active risk — e.g. 'How long will the window lead time issue affect the schedule?' Your builder will address this in next week's update."></textarea> 
+            <button class="comment-submit">Submit</button>
+          </div>
+          <div id="cs-risks" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
+        </div>
+      </div>
+      <div id="risk-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+    </section>
+    <div class="horizon-mark">
+      <div class="horizon-mark-dot">&nbsp;</div>
+    </div>
+<!-- ════ 5. CHANGE ORDER LOG ════ -->
+    <section id="sec-pco" class="mb-16 mt-10">
+      <div class="section-header-wrap">
+        <div class="section-eyebrow">Potential Change Order Log</div>
+        <button class="comment-trigger no-print">Comment</button>
+      </div>
+      <div id="comment-pco" class="comment-panel no-print">
+        <div class="comment-panel-inner">
+          <div class="comment-panel-label">Comment on Change Orders</div>
+          <div class="comment-input-wrap">
+            <textarea id="ct-pco" class="comment-textarea" placeholder="Ask about a change order — e.g. 'Is PCO-005 required or discretionary?' Your builder will address this in next week's update."></textarea> 
+            <button class="comment-submit">Submit</button>
+          </div>
+          <div id="cs-pco" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
+        </div>
+      </div>
+      <div id="pco-summary" class="flex gap-10 mb-6">&nbsp;</div>
+      <div id="pco-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+    </section>
+  </main><!-- ── QUESTIONS ADDRESSED ── -->
+  <div id="sec-questions" class="main" style="padding-top: 0;">
+    <div class="max-w-7xl mx-auto px-10 pb-10">
+      <div class="horizon-mark">
+        <div class="horizon-mark-dot">&nbsp;</div>
+      </div>
+      <section class="mb-10 mt-10">
+        <div class="flex items-center justify-between mb-6">
+          <div class="section-eyebrow" style="margin-bottom: 0;">Questions Addressed This Week</div>
+          <a id="submit-question-link" href="#" target="_blank" style="font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #2e86ab; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 5px;" rel="noopener">Submit a Question</a>
+        </div>
+        <div id="questions-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+        <p style="font-size: 9px; color: #9ca3af; font-style: italic; margin-top: 0.75rem;">Questions submitted through this portal are reviewed Monday morning and addressed in the following week's update. For urgent matters, contact your builder directly.</p>
+      </section>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-10 pb-6">
+    <div style="border-top: 1px solid rgba(214,211,203,0.5); padding-top: 1rem; display: flex; align-items: baseline; gap: 10px;">
+      <span style="font-size: 8px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #9ca3af; flex-shrink: 0;">Disclaimer</span>
+      <p style="font-size: 9.5px; color: #9ca3af; line-height: 1.65; font-style: italic;">For reporting and coordination purposes only. All financial figures, schedule dates, change order amounts, and project status information presented in this dashboard are compiled from builder-reported data and are provided for informational purposes only. Contractual amounts, approved change orders, and payment obligations remain governed by the executed construction agreement and approved project documents. Low Tide Ops does not approve payments, certify work-in-place, guarantee lender approval, or act as a legal or financial advisor. The construction agreement is the governing document for all costs, approvals, and responsibilities. Low Tide Ops is retained by and reports to the builder.</p>
+    </div>
+  </div>
+<!-- ── SITE FOOTER ── -->
+  <footer class="bg-midnight border-t border-white/10 py-6">
+    <div class="max-w-7xl mx-auto px-10 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="flex flex-col items-center gap-1">
+          <div class="w-1.5 h-1.5 rounded-full bg-tide/60">&nbsp;</div>
+          <div class="w-6 h-px bg-tide/40">&nbsp;</div>
+        </div>
+        <span class="text-[9px] tracking-architectural text-taupe uppercase">Low Tide Ops · Builder Experience Services</span>
+      </div>
+      <div id="footer-date" class="font-mono text-[9px] text-taupe">&nbsp;</div>
+    </div>
+  </footer>
+</div>
+<!-- /dashboard --> <!-- ════════════════════════════════════════════
+     PROJECT DATA — UPDATE THIS BLOCK WEEKLY
+     ════════════════════════════════════════════
+     INSTRUCTIONS:
+     When you receive a builder pulse update, paste
+     it into Claude with the prompt:
+     "Update PROJECT_DATA below based on this builder
+     update: [paste update]. Return only the updated
+     PROJECT_DATA object."
+     Then replace this entire const block with the
+     new one Claude returns.
+════════════════════════════════════════════ -->
