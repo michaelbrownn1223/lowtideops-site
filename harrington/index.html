@@ -1,83 +1,164 @@
-<!-- Device detection — runs before first paint, no flash -->      
-<style>/* ── BASE ── */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Low Tide Ops — Executive Owner Dashboard</title>
+
+  <!-- Device detection — runs before first paint, no flash -->
+  <script>
+    (function() {
+      var isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                  || window.innerWidth < 768;
+      var isTablet = /iPad/i.test(navigator.userAgent)
+                  || (window.innerWidth >= 768 && window.innerWidth < 1024);
+      if (isMobile)  document.documentElement.classList.add('is-mobile');
+      if (isTablet)  document.documentElement.classList.add('is-tablet');
+      if (!isMobile && !isTablet) document.documentElement.classList.add('is-desktop');
+      // Store for use in JS render
+      window.DEVICE = { mobile: isMobile, tablet: isTablet, desktop: !isMobile && !isTablet };
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ivory:    '#FDFBF7',
+            midnight: '#1A1F2E',
+            ocean:    '#1C4F72',
+            tide:     '#2E86AB',
+            sand:     '#F0EDE6',
+            fog:      '#D6D3CB',
+            taupe:    '#6B7280',
+            stone:    '#9CA3AF',
+            ink:      '#111827',
+            risk:     '#8B2635',
+            amber:    '#B5621A',
+            ok:       '#2A6049',
+          },
+          fontFamily: {
+            serif:  ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:   ['Inter', 'system-ui', 'sans-serif'],
+            mono:   ['"JetBrains Mono"', 'monospace'],
+          },
+          letterSpacing: {
+            architectural: '0.25em',
+            wide:          '0.12em',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── BASE ── */
     html { scroll-behavior: smooth; }
     body { background: #FDFBF7; color: #1A1F2E; font-family: 'Inter', sans-serif; }
+
     /* ── DEVICE-AWARE FIRST PAINT ── */
     /* Applied before CSS loads — no layout flash on mobile */
+
     html.is-mobile body,
     html.is-tablet body {
       -webkit-text-size-adjust: 100%;
       touch-action: pan-y;
     }
+
     /* Mobile header — hide desktop-only elements immediately */
     html.is-mobile #header-weather,
     html.is-mobile #header-date { display: none !important; }
+
     /* Mobile hero — stack from first paint */
     html.is-mobile .hero-inner-grid {
       flex-direction: column !important;
       align-items: flex-start !important;
       gap: 1.25rem !important;
     }
+
     html.is-mobile #hero-pct-wrap {
       text-align: left !important;
       margin-left: 0 !important;
     }
+
     html.is-mobile #hero-pct-wrap .w-48 { width: 100% !important; }
+
     /* Mobile financial matrix — 2 cols from first paint */
     html.is-mobile .fin-row {
       grid-template-columns: 1fr 1fr !important;
     }
+
     html.is-mobile .fin-row .fin-cell:nth-child(2) { border-right: none !important; }
     html.is-mobile .fin-row .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5) !important; }
     html.is-mobile .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5) !important; border-right: none !important; }
     html.is-mobile .fin-value { font-size: 17px !important; }
+
     /* Mobile tap targets — larger, more comfortable */
     html.is-mobile #gate-input  { padding: 14px 18px; font-size: 16px !important; }
     html.is-mobile #gate-btn    { padding: 14px; min-height: 48px; }
     html.is-mobile .accordion-trigger { min-height: 48px; }
     html.is-mobile .hz-tab      { min-height: 40px; padding: 8px 12px; }
+
     /* Mobile spacing */
     html.is-mobile main {
       padding-left: 1.25rem !important;
       padding-right: 1.25rem !important;
       padding-top: 1.75rem !important;
     }
+
     html.is-mobile .max-w-7xl {
       padding-left: 1.25rem !important;
       padding-right: 1.25rem !important;
     }
+
     html.is-mobile header .max-w-7xl {
       padding-left: 1rem !important;
       padding-right: 1rem !important;
     }
+
     /* Mobile ledger — 2 cols */
     html.is-mobile .ledger-row {
       grid-template-columns: 1fr auto !important;
       gap: 8px !important;
     }
+
     html.is-mobile .ledger-row > *:nth-child(3),
     html.is-mobile .ledger-row > *:nth-child(4),
     html.is-mobile .ledger-header > *:nth-child(3),
     html.is-mobile .ledger-header > *:nth-child(4) { display: none !important; }
+
     /* Mobile timeline — 3 cols */
     html.is-mobile .timeline-item {
       grid-template-columns: 40px 1fr auto !important;
       gap: 10px !important;
     }
+
     html.is-mobile .timeline-item .badge { display: none !important; }
+
     /* Mobile PCO — 2 cols */
     html.is-mobile .pco-grid { grid-template-columns: 1fr auto !important; }
     html.is-mobile .pco-grid > *:nth-child(3),
     html.is-mobile .pco-grid > *:nth-child(4) { display: none !important; }
+
     /* Mobile hide budget bar column */
     html.is-mobile .budget-cat-bar-col { display: none !important; }
     html.is-mobile .budget-cat-grid    { grid-template-columns: 1fr auto auto !important; }
+
     /* Mobile PCO summary */
     html.is-mobile #pco-summary { flex-wrap: wrap !important; gap: 0.75rem !important; }
+
     /* Mobile footer */
     html.is-mobile footer .max-w-7xl { flex-direction: column !important; gap: 0.75rem !important; }
+
     /* Mobile gate form width */
     html.is-mobile #gate-form { width: 88vw; max-width: 320px; }
+
     /* Tablet — slightly looser than mobile */
     html.is-tablet .fin-row { grid-template-columns: 1fr 1fr !important; }
     html.is-tablet .fin-row .fin-cell:nth-child(2) { border-right: none !important; }
@@ -85,6 +166,7 @@
     html.is-tablet .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5) !important; border-right: none !important; }
     html.is-tablet .ledger-row > *:nth-child(4) { display: none !important; }
     html.is-tablet .ledger-header > *:nth-child(4) { display: none !important; }
+
     /* Extra small phones */
     @media (max-width: 380px) {
       html.is-mobile .fin-row { grid-template-columns: 1fr !important; }
@@ -92,6 +174,7 @@
       html.is-mobile .fin-cell:first-child { border-top: none !important; }
       h1.font-serif { font-size: 1.5rem !important; }
     }
+
     /* ── PASSWORD GATE ── */
     #gate {
       position: fixed; inset: 0; z-index: 9999;
@@ -99,40 +182,49 @@
       display: flex; align-items: center; justify-content: center;
       flex-direction: column;
     }
+
     #gate-horizon {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -160px);
       display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
+
     .gate-dot {
       width: 10px; height: 10px; border-radius: 50%;
       background: #2E86AB;
       animation: gateDotRise 2s ease-in-out infinite alternate;
     }
+
     .gate-line {
       width: 80px; height: 1px; background: rgba(46,134,171,0.4);
     }
+
     @keyframes gateDotRise {
       0%   { transform: translateY(3px); opacity: 0.6; }
       100% { transform: translateY(-3px); opacity: 1; }
     }
+
     #gate-form { width: 320px; text-align: center; }
+
     #gate-name {
       font-size: 9px; letter-spacing: 0.3em;
       text-transform: uppercase; color: #2E86AB;
       margin-bottom: 8px; display: block;
     }
+
     #gate-title {
       font-family: 'Playfair Display', serif;
       font-size: 22px; color: #fff;
       margin-bottom: 4px;
     }
+
     #gate-sub {
       font-size: 11px; color: #6B7280;
       letter-spacing: 0.08em;
       margin-bottom: 32px;
     }
+
     #gate-input {
       width: 100%; padding: 12px 18px;
       background: rgba(255,255,255,0.06);
@@ -143,8 +235,10 @@
       transition: border-color 0.2s;
       margin-bottom: 12px;
     }
+
     #gate-input:focus { border-color: rgba(46,134,171,0.6); }
     #gate-input::placeholder { color: rgba(255,255,255,0.2); }
+
     #gate-btn {
       width: 100%; padding: 12px;
       background: #2E86AB; color: #fff;
@@ -154,40 +248,49 @@
       border: none; cursor: pointer;
       transition: background 0.2s;
     }
+
     #gate-btn:hover { background: #1C4F72; }
+
     #gate-error {
       font-size: 10px; color: #8B2635;
       letter-spacing: 0.1em; margin-top: 10px;
       min-height: 16px; display: block;
     }
+
     #gate-footer {
       position: absolute; bottom: 2rem;
       font-size: 9px; letter-spacing: 0.15em;
       color: rgba(107,114,128,0.5); text-transform: uppercase;
     }
+
     /* ── DASHBOARD ── */
     #dashboard { display: none; min-height: 100vh; }
     #dashboard.visible { display: block; animation: fadeIn 0.6s ease; }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
     /* ── HORIZON MARK ── */
     .horizon-mark {
       position: relative;
       display: flex; align-items: center; justify-content: center;
       padding: 20px 0 16px;
     }
+
     .horizon-mark::before {
       content: ''; position: absolute;
       left: 0; right: 0; top: 50%;
       height: 1px; background: rgba(26,31,46,0.12);
     }
+
     .horizon-mark-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: #2E86AB; position: relative; z-index: 1;
       box-shadow: 0 0 0 3px #FDFBF7;
     }
+
     /* ── SECTION HEADER ── */
     .section-eyebrow {
       font-size: 9px; font-weight: 600;
@@ -196,50 +299,62 @@
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 1.5rem;
     }
+
     .section-eyebrow::before {
       content: ''; display: block;
       width: 20px; height: 1px;
       background: #2E86AB; opacity: 0.6; flex-shrink: 0;
     }
+
     /* ── FINANCIAL MATRIX ── */
     .fin-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       border-bottom: 1px solid rgba(214,211,203,0.5);
     }
+
     .fin-row:last-child { border-bottom: none; }
+
     .fin-cell {
       padding: 1.25rem 1.5rem;
       border-right: 1px solid rgba(214,211,203,0.5);
     }
+
     .fin-cell:last-child { border-right: none; }
+
     .fin-label {
       font-size: 8px; letter-spacing: 0.2em;
       text-transform: uppercase; color: #9CA3AF;
       margin-bottom: 6px;
     }
+
     .fin-value {
       font-family: 'JetBrains Mono', monospace;
       font-size: 22px; font-weight: 500;
       color: #1A1F2E; line-height: 1;
       margin-bottom: 4px;
     }
+
     .fin-note {
       font-size: 9px; color: #9CA3AF;
       line-height: 1.4;
     }
+
     .fin-value.variance-positive { color: #2A6049; }
     .fin-value.variance-negative { color: #8B2635; }
     .fin-value.variance-pending  { color: #B5621A; }
+
     /* ── PROGRESS BAR ── */
     .progress-track {
       height: 3px; background: #F0EDE6;
       border: 1px solid #D6D3CB;
       margin-top: 8px;
     }
+
     .progress-fill {
       height: 100%; transition: width 1.2s ease;
     }
+
     /* ── TIMELINE ── */
     .timeline-item {
       display: grid;
@@ -248,17 +363,21 @@
       padding: 0.9rem 0;
       border-bottom: 1px solid rgba(214,211,203,0.4);
     }
+
     .timeline-item:last-child { border-bottom: none; }
+
     .tl-horizon {
       font-family: 'JetBrains Mono', monospace;
       font-size: 9px; font-weight: 500;
       letter-spacing: 0.05em; color: #9CA3AF;
       text-transform: uppercase;
     }
+
     .tl-status-dot {
       width: 6px; height: 6px; border-radius: 50%;
       flex-shrink: 0;
     }
+
     /* ── SELECTION LEDGER ── */
     .ledger-row {
       display: grid;
@@ -267,24 +386,30 @@
       padding: 1rem 0;
       border-bottom: 1px solid rgba(214,211,203,0.4);
     }
+
     .ledger-row:last-child { border-bottom: none; }
+
     .ledger-header {
       font-size: 8px; font-weight: 600;
       letter-spacing: 0.2em; text-transform: uppercase;
       color: #9CA3AF; padding-bottom: 0.6rem;
       border-bottom: 1px solid #D6D3CB;
     }
+
     .urgency-pill {
       display: inline-flex; align-items: center;
       gap: 5px; font-size: 8px;
       font-weight: 600; letter-spacing: 0.1em;
       text-transform: uppercase; padding: 3px 8px;
     }
+
     /* ── ACCORDION ── */
     .accordion-item {
       border-bottom: 1px solid rgba(214,211,203,0.5);
     }
+
     .accordion-item:last-child { border-bottom: none; }
+
     .accordion-trigger {
       width: 100%; display: flex;
       align-items: center; justify-content: space-between;
@@ -292,20 +417,25 @@
       background: none; border: none;
       text-align: left;
     }
+
     .accordion-body {
       overflow: hidden;
       max-height: 0;
       transition: max-height 0.3s ease, padding 0.3s ease;
     }
+
     .accordion-body.open {
       max-height: 400px;
       padding-bottom: 1rem;
     }
+
     .accordion-chevron {
       transition: transform 0.3s ease;
       flex-shrink: 0;
     }
+
     .accordion-chevron.open { transform: rotate(180deg); }
+
     /* ── STATUS BADGES ── */
     .badge {
       display: inline-flex; align-items: center;
@@ -313,25 +443,31 @@
       font-weight: 600; letter-spacing: 0.12em;
       text-transform: uppercase;
     }
+
     .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+
     /* ── ANIMATIONS ── */
     @keyframes horizonDraw {
       from { transform: scaleX(0); }
       to   { transform: scaleX(1); }
     }
+
     .horizon-animate {
       transform-origin: left;
       animation: horizonDraw 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s both;
     }
+
     .section-header-wrap {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 1.5rem;
     }
+
     .section-header-wrap .section-eyebrow {
       margin-bottom: 0;
     }
+
     .comment-trigger {
       display: inline-flex;
       align-items: center;
@@ -348,16 +484,19 @@
       transition: all 0.15s;
       flex-shrink: 0;
     }
+
     .comment-trigger:hover {
       color: #2E86AB;
       border-color: rgba(46,134,171,0.4);
       background: rgba(46,134,171,0.04);
     }
+
     .comment-trigger.has-comments {
       color: #2E86AB;
       border-color: rgba(46,134,171,0.35);
       background: rgba(46,134,171,0.06);
     }
+
     .comment-panel {
       background: #FDFBF7;
       border: 1px solid rgba(214,211,203,0.7);
@@ -368,13 +507,16 @@
       transition: max-height 0.35s ease, opacity 0.3s ease;
       opacity: 0;
     }
+
     .comment-panel.open {
       max-height: 400px;
       opacity: 1;
     }
+
     .comment-panel-inner {
       padding: 1rem 1.25rem;
     }
+
     .comment-panel-label {
       font-size: 8px;
       font-weight: 600;
@@ -386,11 +528,13 @@
       align-items: center;
       gap: 8px;
     }
+
     .comment-input-wrap {
       display: flex;
       gap: 8px;
       align-items: flex-end;
     }
+
     .comment-textarea {
       flex: 1;
       border: 1px solid rgba(214,211,203,0.8);
@@ -405,8 +549,10 @@
       line-height: 1.5;
       transition: border-color 0.2s;
     }
+
     .comment-textarea:focus { border-color: #2E86AB; }
     .comment-textarea::placeholder { color: #9CA3AF; }
+
     .comment-submit {
       padding: 8px 16px;
       background: #2E86AB;
@@ -423,7 +569,9 @@
       align-self: flex-end;
       min-height: 60px;
     }
+
     .comment-submit:hover { background: #1C4F72; }
+
     .comment-submitted {
       display: none;
       font-size: 11px;
@@ -433,18 +581,21 @@
       align-items: center;
       gap: 6px;
     }
+
     .comment-note {
       font-size: 9px;
       color: #9CA3AF;
       margin-top: 6px;
       font-style: italic;
     }
+
     /* Hide comment triggers on print */
     @media print {
       .comment-trigger,
       .comment-panel { display: none !important; }
       .section-header-wrap { display: block !important; }
     }
+
     html.is-mobile .comment-trigger { font-size: 7px; padding: 4px 8px; }
     #feedback-btn {
       display: inline-flex;
@@ -464,23 +615,29 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
+
     #feedback-btn:hover {
       background: rgba(46,134,171,0.22);
       border-color: rgba(46,134,171,0.55);
     }
+
     html.is-mobile #feedback-btn { font-size: 8px; padding: 5px 10px; }
+
     /* ── Q&A SECTION ── */
     .qa-item {
       padding: 1.25rem 0;
       border-bottom: 1px solid rgba(214,211,203,0.4);
     }
+
     .qa-item:last-child { border-bottom: none; }
+
     .qa-question {
       display: flex;
       align-items: baseline;
       gap: 10px;
       margin-bottom: 0.6rem;
     }
+
     .qa-q-label {
       font-size: 8px;
       font-weight: 600;
@@ -490,18 +647,21 @@
       flex-shrink: 0;
       margin-top: 2px;
     }
+
     .qa-q-text {
       font-size: 12px;
       font-weight: 500;
       color: #1A1F2E;
       line-height: 1.5;
     }
+
     .qa-answer {
       display: flex;
       align-items: baseline;
       gap: 10px;
       padding-left: 0;
     }
+
     .qa-a-label {
       font-size: 8px;
       font-weight: 600;
@@ -511,11 +671,13 @@
       flex-shrink: 0;
       margin-top: 2px;
     }
+
     .qa-a-text {
       font-size: 11.5px;
       color: #6B7280;
       line-height: 1.65;
     }
+
     .qa-date {
       font-family: 'JetBrains Mono', monospace;
       font-size: 9px;
@@ -523,15 +685,18 @@
       margin-top: 4px;
     }
     @media (max-width: 768px) {
+
       /* Gate — tighter on small screens */
       #gate-form { width: 88vw; max-width: 320px; }
       #gate-title { font-size: 18px; }
       #gate-input { font-size: 16px; } /* prevents iOS zoom */
+
       /* Header — hide weather detail, compress */
       #header-weather { display: none; }
       #header-date    { display: none; }
       .max-w-7xl { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
       header .max-w-7xl { padding-left: 1rem !important; padding-right: 1rem !important; }
+
       /* Hero — stack vertically */
       .hero-inner-grid {
         flex-direction: column !important;
@@ -546,8 +711,10 @@
         gap: 1rem 2rem !important;
       }
       h1.font-serif { font-size: 1.75rem !important; }
+
       /* Main padding */
       main { padding-left: 1.25rem !important; padding-right: 1.25rem !important; padding-top: 2rem !important; }
+
       /* Financial matrix — 2 cols on mobile, stack rows */
       .fin-row {
         grid-template-columns: 1fr 1fr !important;
@@ -556,15 +723,18 @@
       .fin-row .fin-cell:nth-child(3) { border-top: 1px solid rgba(214,211,203,0.5); }
       .fin-row .fin-cell:nth-child(4) { border-top: 1px solid rgba(214,211,203,0.5); border-right: none; }
       .fin-value { font-size: 17px !important; }
+
       /* Budget category — hide progress bar col, simplify */
       .budget-cat-grid { grid-template-columns: 1fr auto auto !important; }
       .budget-cat-bar-col { display: none !important; }
+
       /* Timeline — simplify columns */
       .timeline-item {
         grid-template-columns: 40px 1fr auto !important;
         gap: 10px !important;
       }
       .timeline-item .badge { display: none !important; }
+
       /* Ledger — stack to 2 cols, hide financial impact */
       .ledger-row {
         grid-template-columns: 1fr auto !important;
@@ -574,21 +744,28 @@
       .ledger-row > *:nth-child(4) { display: none !important; }
       .ledger-header > *:nth-child(3),
       .ledger-header > *:nth-child(4) { display: none !important; }
+
       /* PCO list — stack to 2 cols */
       .pco-grid { grid-template-columns: 1fr auto !important; }
       .pco-grid > *:nth-child(3),
       .pco-grid > *:nth-child(4) { display: none !important; }
+
       /* Section eyebrow */
       .section-eyebrow { font-size: 8px !important; }
+
       /* PCO summary — wrap */
       #pco-summary { flex-wrap: wrap !important; gap: 0.75rem !important; }
+
       /* Horizon tabs */
       #horizon-tabs { gap: 1rem !important; overflow-x: auto; }
+
       /* Footer */
       footer .max-w-7xl { flex-direction: column !important; gap: 0.75rem !important; }
+
       /* Accordion — full width */
       .accordion-trigger { padding: 0.875rem 0 !important; }
     }
+
     /* Extra small — phones under 380px */
     @media (max-width: 380px) {
       .fin-row { grid-template-columns: 1fr !important; }
@@ -596,6 +773,7 @@
       .fin-cell:first-child { border-top: none !important; }
       h1.font-serif { font-size: 1.5rem !important; }
     }
+
     /* ── PRINT ── */
     @media print {
       #gate         { display: none !important; }
@@ -613,6 +791,7 @@
       section { page-break-inside: avoid; margin-bottom: 2rem !important; }
       .horizon-mark { display: none !important; }
     }
+
     /* ── SECTION NAV ── */
     #section-nav {
       background: #FDFBF7;
@@ -624,7 +803,9 @@
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
+
     #section-nav::-webkit-scrollbar { display: none; }
+
     .snav-inner {
       max-width: 1280px;
       margin: 0 auto;
@@ -634,6 +815,7 @@
       gap: 0;
       min-width: max-content;
     }
+
     .snav-btn {
       display: flex;
       align-items: center;
@@ -651,16 +833,20 @@
       white-space: nowrap;
       transition: color 0.15s, border-color 0.15s;
     }
+
     .snav-btn:hover { color: #1A1F2E; }
+
     .snav-btn.active {
       color: #2E86AB;
       border-bottom-color: #2E86AB;
     }
+
     .snav-dot {
       width: 5px; height: 5px;
       border-radius: 50%;
       flex-shrink: 0;
     }
+
     .snav-right {
       margin-left: auto;
       display: flex;
@@ -669,6 +855,7 @@
       border-left: 1px solid rgba(214,211,203,0.6);
       gap: 1rem;
     }
+
     #print-btn {
       display: flex;
       align-items: center;
@@ -684,16 +871,19 @@
       cursor: pointer;
       transition: all 0.15s;
     }
+
     #print-btn:hover {
       color: #1A1F2E;
       border-color: #1A1F2E;
     }
+
     /* ── LAST UPDATED BANNER ── */
     #last-updated-bar {
       background: rgba(46,134,171,0.06);
       border-bottom: 1px solid rgba(46,134,171,0.15);
       padding: 0.6rem 0;
     }
+
     .last-updated-inner {
       max-width: 1280px;
       margin: 0 auto;
@@ -704,35 +894,42 @@
       gap: 1rem;
       flex-wrap: wrap;
     }
+
     .last-updated-left {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .last-updated-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
       background: #2E86AB;
       animation: pulse-dot 2.5s ease-in-out infinite;
     }
+
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.5; transform: scale(0.85); }
     }
+
     .last-updated-text {
       font-size: 10px;
       color: #1C4F72;
       font-weight: 500;
     }
+
     .last-updated-text strong {
       color: #1A1F2E;
       font-weight: 600;
     }
+
     .last-updated-next {
       font-size: 9px;
       color: #9CA3AF;
       letter-spacing: 0.05em;
     }
+
     /* ── EMPTY STATES ── */
     .empty-state {
       padding: 2.5rem 1.5rem;
@@ -740,6 +937,7 @@
       border: 1px dashed rgba(214,211,203,0.8);
       background: rgba(244,240,230,0.3);
     }
+
     .empty-icon {
       width: 36px; height: 36px;
       border-radius: 50%;
@@ -747,12 +945,14 @@
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 12px;
     }
+
     .empty-title {
       font-size: 12px;
       font-weight: 600;
       color: #6B7280;
       margin-bottom: 4px;
     }
+
     .empty-sub {
       font-size: 11px;
       color: #9CA3AF;
@@ -760,14 +960,17 @@
       max-width: 36ch;
       margin: 0 auto;
     }
+
     /* ── TRANSACTION LEDGER ── */
     .cat-row {
       border-bottom: 1px solid rgba(214,211,203,0.4);
       cursor: pointer;
       transition: background 0.15s;
     }
+
     .cat-row:last-child { border-bottom: none; }
     .cat-row:hover .cat-summary { background: rgba(244,240,230,0.6); }
+
     .cat-summary {
       display: grid;
       grid-template-columns: 1fr 100px auto auto auto;
@@ -776,11 +979,14 @@
       padding: 0.85rem 1.5rem;
       transition: background 0.15s;
     }
+
     .cat-chevron {
       transition: transform 0.25s ease;
       color: #9CA3AF;
     }
+
     .cat-chevron.open { transform: rotate(180deg); }
+
     .cat-transactions {
       max-height: 0;
       overflow: hidden;
@@ -788,14 +994,17 @@
       background: #FDFBF7;
       border-top: 1px solid rgba(214,211,203,0);
     }
+
     .cat-transactions.open {
       max-height: 800px;
       border-top-color: rgba(214,211,203,0.4);
     }
+
     .txn-table {
       width: 100%;
       border-collapse: collapse;
     }
+
     .txn-header th {
       padding: 0.5rem 1.5rem;
       text-align: left;
@@ -807,28 +1016,35 @@
       background: rgba(214,211,203,0.15);
       border-bottom: 1px solid rgba(214,211,203,0.5);
     }
+
     .txn-header th:last-child { text-align: right; }
+
     .txn-row td {
       padding: 0.65rem 1.5rem;
       font-size: 10.5px;
       border-bottom: 1px solid rgba(214,211,203,0.25);
       vertical-align: middle;
     }
+
     .txn-row:last-child td { border-bottom: none; }
     .txn-row:hover td { background: rgba(244,240,230,0.5); }
+
     .txn-ref {
       font-family: 'JetBrains Mono', monospace;
       font-size: 9px;
       color: #9CA3AF;
       white-space: nowrap;
     }
+
     .txn-date {
       font-family: 'JetBrains Mono', monospace;
       font-size: 9.5px;
       color: #6B7280;
       white-space: nowrap;
     }
+
     .txn-desc { color: #1A1F2E; }
+
     .txn-amount {
       font-family: 'JetBrains Mono', monospace;
       font-size: 10.5px;
@@ -836,7 +1052,9 @@
       text-align: right;
       white-space: nowrap;
     }
+
     .txn-status { white-space: nowrap; }
+
     /* Transaction status pills */
     .txn-pill {
       display: inline-flex;
@@ -849,10 +1067,12 @@
       padding: 2px 7px;
       border-radius: 2px;
     }
+
     .txn-pill-paid       { background: rgba(42,96,73,0.08);  color: #2A6049; }
     .txn-pill-pending    { background: rgba(181,98,26,0.08); color: #B5621A; }
     .txn-pill-approved   { background: rgba(46,134,171,0.08);color: #1C4F72; }
     .txn-pill-retainage  { background: rgba(107,114,128,0.1);color: #6B7280; }
+
     /* Category totals row */
     .txn-totals td {
       padding: 0.6rem 1.5rem;
@@ -861,6 +1081,7 @@
       font-size: 10px;
       font-weight: 600;
     }
+
     /* Retainage note */
     .retainage-note {
       padding: 0.5rem 1.5rem;
@@ -870,45 +1091,64 @@
       background: rgba(214,211,203,0.1);
       border-top: 1px solid rgba(214,211,203,0.3);
     }
+
     /* Mobile — simplify transaction table */
     html.is-mobile .cat-summary {
       grid-template-columns: 1fr auto auto !important;
     }
+
     html.is-mobile .cat-summary .budget-cat-bar-col,
     html.is-mobile .txn-header th:nth-child(1),
     html.is-mobile .txn-row td:nth-child(1) { display: none !important; }
+
     html.is-mobile .txn-header th,
     html.is-mobile .txn-row td { padding: 0.55rem 1rem !important; }
     html.is-mobile .snav-right { display: none !important; }
-    html.is-mobile .snav-inner { padding: 0 1rem; }</style>
+    html.is-mobile .snav-inner { padding: 0 1rem; }
+  </style>
+</head>
+<body>
+
 <!-- ════════════════════════════════════════════
      PASSWORD GATE
 ════════════════════════════════════════════ -->
 <div id="gate">
   <div id="gate-horizon">
-    <div class="gate-dot">&nbsp;</div>
-    <div class="gate-line">&nbsp;</div>
+    <div class="gate-dot"></div>
+    <div class="gate-line"></div>
   </div>
+
   <div id="gate-form">
     <span id="gate-name">Low Tide Ops</span>
     <div id="gate-title">Executive Owner Portal</div>
     <div id="gate-sub">Confidential · Authorized Access Only</div>
-    <input id="gate-input" autocomplete="off" type="password" placeholder="Enter access code"> 
-    <button id="gate-btn">Access Dashboard</button> 
+    <input
+      type="password"
+      id="gate-input"
+      placeholder="Enter access code"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter') checkPassword()"
+    />
+    <button id="gate-btn" onclick="checkPassword()">Access Dashboard</button>
     <span id="gate-error"></span>
   </div>
+
   <div id="gate-footer">Low Tide Ops · San Clemente, CA</div>
 </div>
+
+
 <!-- ════════════════════════════════════════════
      DASHBOARD
 ════════════════════════════════════════════ -->
-<div id="dashboard"><!-- ── SITE HEADER ── -->
+<div id="dashboard">
+
+  <!-- ── SITE HEADER ── -->
   <header class="bg-midnight border-b border-white/10 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-10 h-16 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <div class="flex flex-col items-center gap-1">
-          <div class="w-2 h-2 rounded-full bg-tide">&nbsp;</div>
-          <div class="w-8 h-px bg-tide">&nbsp;</div>
+          <div class="w-2 h-2 rounded-full bg-tide"></div>
+          <div class="w-8 h-px bg-tide"></div>
         </div>
         <div>
           <div class="text-[9px] tracking-architectural text-tide uppercase font-semibold">Low Tide Ops</div>
@@ -916,223 +1156,330 @@
         </div>
       </div>
       <div class="flex items-center gap-6">
-        <div id="header-weather" class="flex items-center gap-3 px-4 py-2 border border-white/10"><!-- injected --></div>
-        <div id="header-date" class="font-mono text-[10px] text-taupe">&nbsp;</div>
+        <div id="header-weather" class="flex items-center gap-3 px-4 py-2 border border-white/10">
+          <!-- injected -->
+        </div>
+        <div class="font-mono text-[10px] text-taupe" id="header-date"></div>
         <div class="text-[8px] tracking-architectural text-taupe uppercase border-l border-white/10 pl-6">Confidential</div>
       </div>
     </div>
-  </header><!-- ── PROJECT HERO ── -->
+  </header>
+
+  <!-- ── PROJECT HERO ── -->
   <div class="bg-midnight border-b border-white/10">
     <div class="max-w-7xl mx-auto px-10 py-8 md:py-10">
       <div class="flex items-end justify-between hero-inner-grid">
         <div class="flex-1 min-w-0">
-          <div id="hero-label" class="text-[9px] tracking-architectural text-taupe uppercase mb-3">&nbsp;</div>
-          <h1 id="hero-project-name" class="font-serif text-4xl font-semibold text-white mb-2 tracking-tight">&nbsp;</h1>
-          <div id="hero-address" class="text-[11px] tracking-wide text-taupe">&nbsp;</div>
-          <div id="hero-meta" class="flex gap-8 mt-6 flex-wrap">&nbsp;</div>
+          <div class="text-[9px] tracking-architectural text-taupe uppercase mb-3" id="hero-label"></div>
+          <h1 class="font-serif text-4xl font-semibold text-white mb-2 tracking-tight" id="hero-project-name"></h1>
+          <div class="text-[11px] tracking-wide text-taupe" id="hero-address"></div>
+          <div class="flex gap-8 mt-6 flex-wrap" id="hero-meta"></div>
         </div>
-        <div id="hero-pct-wrap" class="flex flex-col items-end gap-4 flex-shrink-0 ml-8">
-          <div id="hero-phase-badge" class="flex items-center gap-3 px-4 py-2 border border-tide/40 bg-tide/10">&nbsp;</div>
+        <div class="flex flex-col items-end gap-4 flex-shrink-0 ml-8" id="hero-pct-wrap">
+          <div class="flex items-center gap-3 px-4 py-2 border border-tide/40 bg-tide/10" id="hero-phase-badge"></div>
           <div class="text-right">
-            <div id="hero-pct" class="font-mono text-4xl font-medium text-white">&nbsp;</div>
+            <div class="font-mono text-4xl font-medium text-white" id="hero-pct"></div>
             <div class="text-[8px] tracking-architectural text-taupe uppercase mt-1">Overall Complete</div>
-            <div id="hero-progress-bar" class="w-48 mt-2">&nbsp;</div>
+            <div class="w-48 mt-2" id="hero-progress-bar"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
-<!-- ── LAST UPDATED BAR ── -->
+
+  <!-- ── LAST UPDATED BAR ── -->
   <div id="last-updated-bar">
     <div class="last-updated-inner">
       <div class="last-updated-left">
-        <div class="last-updated-dot">&nbsp;</div>
-        <span id="last-updated-text" class="last-updated-text">Loading...</span>
+        <div class="last-updated-dot"></div>
+        <span class="last-updated-text" id="last-updated-text">Loading...</span>
       </div>
       <div class="flex items-center gap-4">
-        <a id="feedback-btn" href="#" target="_blank" rel="noopener">Submit a Question</a> 
-        <span id="last-updated-next" class="last-updated-next"></span>
+        <a id="feedback-btn" href="#" target="_blank">
+          <i data-lucide="message-square" style="width:11px;height:11px;"></i>
+          Submit a Question
+        </a>
+        <span class="last-updated-next" id="last-updated-next"></span>
       </div>
     </div>
   </div>
-<!-- ── SECTION NAV ── -->
+
+  <!-- ── SECTION NAV ── -->
   <nav id="section-nav">
     <div class="snav-inner">
-      <div class="snav-dot bg-tide">&nbsp;</div>
-      <button class="snav-btn active">Financial Matrix</button> 
-      <div class="snav-dot bg-taupe/60">&nbsp;</div>
-      <button class="snav-btn">Horizon Outlook</button> 
-      <div class="snav-dot bg-amber">&nbsp;</div>
-      <button class="snav-btn">Decisions</button> 
-      <div class="snav-dot bg-risk">&nbsp;</div>
-      <button class="snav-btn">Risks</button> 
-      <div class="snav-dot bg-taupe/60">&nbsp;</div>
-      <button class="snav-btn">Change Orders</button> 
-      <div class="snav-dot bg-tide/50">&nbsp;</div>
-      <button class="snav-btn">Questions</button>
+      <button class="snav-btn active" onclick="snavClick('sec-financials',this)">
+        <div class="snav-dot bg-tide"></div>Financial Matrix
+      </button>
+      <button class="snav-btn" onclick="snavClick('sec-horizon',this)">
+        <div class="snav-dot bg-taupe/60"></div>Horizon Outlook
+      </button>
+      <button class="snav-btn" onclick="snavClick('sec-decisions',this)">
+        <div class="snav-dot bg-amber"></div>Decisions
+      </button>
+      <button class="snav-btn" onclick="snavClick('sec-risks',this)">
+        <div class="snav-dot bg-risk"></div>Risks
+      </button>
+      <button class="snav-btn" onclick="snavClick('sec-pco',this)">
+        <div class="snav-dot bg-taupe/60"></div>Change Orders
+      </button>
+      <button class="snav-btn" onclick="snavClick('sec-questions',this)">
+        <div class="snav-dot bg-tide/50"></div>Questions
+      </button>
       <div class="snav-right no-print">
-        <button id="print-btn">Save PDF</button>
+        <button id="print-btn" onclick="window.print()">
+          <i data-lucide="printer" style="width:12px;height:12px;"></i>
+          Save PDF
+        </button>
       </div>
     </div>
-  </nav><!-- ── MAIN CONTENT ── -->
-  <main class="max-w-7xl mx-auto px-10 py-12"><!-- ════ 1. MACRO VARIANCE LOG ════ -->
-    <section id="sec-financials" class="mb-16">
+  </nav>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="max-w-7xl mx-auto px-10 py-12">
+
+    <!-- ════ 1. MACRO VARIANCE LOG ════ -->
+    <section class="mb-16" id="sec-financials">
       <div class="section-header-wrap">
         <div class="section-eyebrow">Macro Variance Log — Financial Matrix</div>
-        <button class="comment-trigger no-print">Comment</button>
+        <button class="comment-trigger no-print" onclick="toggleComment('comment-financials')">
+          <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+          Comment
+        </button>
       </div>
-      <div id="comment-financials" class="comment-panel no-print">
+      <div class="comment-panel no-print" id="comment-financials">
         <div class="comment-panel-inner">
-          <div class="comment-panel-label">Comment on Financial Matrix</div>
-          <div class="comment-input-wrap">
-            <textarea id="ct-financials" class="comment-textarea" placeholder="Ask a question or leave a note about the financial data — e.g. 'Can you clarify the pending exposure on PCO-005?' Your builder will address this in next week's update."></textarea> 
-            <button class="comment-submit">Submit</button>
+          <div class="comment-panel-label">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment on Financial Matrix
           </div>
-          <div id="cs-financials" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-input-wrap">
+            <textarea class="comment-textarea" id="ct-financials" placeholder="Ask a question or leave a note about the financial data — e.g. 'Can you clarify the pending exposure on PCO-005?' Your builder will address this in next week's update."></textarea>
+            <button class="comment-submit" onclick="submitComment('financials')">Submit</button>
+          </div>
+          <div class="comment-submitted" id="cs-financials">
+            <i data-lucide="check-circle" style="width:12px;height:12px;color:#2A6049;"></i>
+            Comment received — will be addressed in your next update.
+          </div>
           <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
         </div>
       </div>
-      <div id="financial-matrix" class="border border-fog/60 bg-white mb-6">&nbsp;</div>
-      <div id="budget-progress-wrap" class="mt-4">&nbsp;</div>
+      <div class="border border-fog/60 bg-white mb-6" id="financial-matrix"></div>
+      <div class="mt-4" id="budget-progress-wrap"></div>
     </section>
-    <div class="horizon-mark">
-      <div class="horizon-mark-dot">&nbsp;</div>
-    </div>
-<!-- ════ 2. HORIZON OUTLOOK ════ -->
-    <section id="sec-horizon" class="mb-16 mt-10">
+
+    <div class="horizon-mark"><div class="horizon-mark-dot"></div></div>
+
+    <!-- ════ 2. HORIZON OUTLOOK ════ -->
+    <section class="mb-16 mt-10" id="sec-horizon">
       <div class="section-header-wrap">
         <div class="section-eyebrow">Horizon Outlook — Critical Path</div>
-        <button class="comment-trigger no-print">Comment</button>
+        <button class="comment-trigger no-print" onclick="toggleComment('comment-horizon')">
+          <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+          Comment
+        </button>
       </div>
-      <div id="comment-horizon" class="comment-panel no-print">
+      <div class="comment-panel no-print" id="comment-horizon">
         <div class="comment-panel-inner">
-          <div class="comment-panel-label">Comment on Horizon Outlook</div>
-          <div class="comment-input-wrap">
-            <textarea id="ct-horizon" class="comment-textarea" placeholder="Ask about an upcoming milestone or schedule item — e.g. 'Is the July 3 framing completion still on track?' Your builder will address this in next week's update."></textarea> 
-            <button class="comment-submit">Submit</button>
+          <div class="comment-panel-label">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment on Horizon Outlook
           </div>
-          <div id="cs-horizon" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-input-wrap">
+            <textarea class="comment-textarea" id="ct-horizon" placeholder="Ask about an upcoming milestone or schedule item — e.g. 'Is the July 3 framing completion still on track?' Your builder will address this in next week's update."></textarea>
+            <button class="comment-submit" onclick="submitComment('horizon')">Submit</button>
+          </div>
+          <div class="comment-submitted" id="cs-horizon">
+            <i data-lucide="check-circle" style="width:12px;height:12px;color:#2A6049;"></i>
+            Comment received — will be addressed in your next update.
+          </div>
           <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
         </div>
       </div>
-      <div id="horizon-tabs" class="flex gap-6 mb-6 no-print">
-        <button class="hz-tab active text-[9px] tracking-wide uppercase font-semibold text-tide border-b border-tide pb-1">All</button> 
-        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">30 Days</button> 
-        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">60 Days</button> 
-        <button class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">90 Days</button>
+      <div class="flex gap-6 mb-6 no-print" id="horizon-tabs">
+        <button onclick="filterHorizon('all',this)" class="hz-tab active text-[9px] tracking-wide uppercase font-semibold text-tide border-b border-tide pb-1">All</button>
+        <button onclick="filterHorizon('30D',this)" class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">30 Days</button>
+        <button onclick="filterHorizon('60D',this)" class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">60 Days</button>
+        <button onclick="filterHorizon('90D',this)" class="hz-tab text-[9px] tracking-wide uppercase text-taupe border-b border-transparent pb-1 hover:text-midnight transition-colors">90 Days</button>
       </div>
-      <div id="horizon-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+      <div id="horizon-list" class="border border-fog/60 bg-white px-6"></div>
     </section>
-    <div class="horizon-mark">
-      <div class="horizon-mark-dot">&nbsp;</div>
-    </div>
-<!-- ════ 3. SELECTION LEDGER ════ -->
-    <section id="sec-decisions" class="mb-16 mt-10">
+
+    <div class="horizon-mark"><div class="horizon-mark-dot"></div></div>
+
+    <!-- ════ 3. SELECTION LEDGER ════ -->
+    <section class="mb-16 mt-10" id="sec-decisions">
       <div class="section-header-wrap">
         <div class="section-eyebrow">Selection Ledger — Owner Decisions</div>
-        <button class="comment-trigger no-print">Comment</button>
+        <button class="comment-trigger no-print" onclick="toggleComment('comment-decisions')">
+          <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+          Comment
+        </button>
       </div>
-      <div id="comment-decisions" class="comment-panel no-print">
+      <div class="comment-panel no-print" id="comment-decisions">
         <div class="comment-panel-inner">
-          <div class="comment-panel-label">Comment on Decisions</div>
-          <div class="comment-input-wrap">
-            <textarea id="ct-decisions" class="comment-textarea" placeholder="Ask about a pending decision — e.g. 'We've selected the exterior cladding — how do we confirm this?' Your builder will address this in next week's update."></textarea> 
-            <button class="comment-submit">Submit</button>
+          <div class="comment-panel-label">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment on Decisions
           </div>
-          <div id="cs-decisions" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-input-wrap">
+            <textarea class="comment-textarea" id="ct-decisions" placeholder="Ask about a pending decision — e.g. 'We've selected the exterior cladding — how do we confirm this?' Your builder will address this in next week's update."></textarea>
+            <button class="comment-submit" onclick="submitComment('decisions')">Submit</button>
+          </div>
+          <div class="comment-submitted" id="cs-decisions">
+            <i data-lucide="check-circle" style="width:12px;height:12px;color:#2A6049;"></i>
+            Comment received — will be addressed in your next update.
+          </div>
           <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
         </div>
       </div>
       <div class="border border-fog/60 bg-white px-6">
-        <div class="ledger-row ledger-header">Decision ItemStatusDue DateFinancial Impact</div>
-        <div id="ledger-list">&nbsp;</div>
+        <div class="ledger-row ledger-header">
+          <span>Decision Item</span>
+          <span>Status</span>
+          <span>Due Date</span>
+          <span>Financial Impact</span>
+        </div>
+        <div id="ledger-list"></div>
       </div>
     </section>
-    <div class="horizon-mark">
-      <div class="horizon-mark-dot">&nbsp;</div>
-    </div>
-<!-- ════ 4. DEFENSIVE MITIGATION ════ -->
-    <section id="sec-risks" class="mb-16 mt-10">
+
+    <div class="horizon-mark"><div class="horizon-mark-dot"></div></div>
+
+    <!-- ════ 4. DEFENSIVE MITIGATION ════ -->
+    <section class="mb-16 mt-10" id="sec-risks">
       <div class="section-header-wrap">
         <div class="section-eyebrow">Defensive Mitigation — Active Risk Strategy</div>
         <div class="flex items-center gap-3">
-          <button class="comment-trigger no-print">Comment</button> 
-          <button class="no-print text-[9px] tracking-wide uppercase text-taupe hover:text-midnight transition-colors font-semibold">Expand All</button>
+          <button class="comment-trigger no-print" onclick="toggleComment('comment-risks')">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment
+          </button>
+          <button class="no-print text-[9px] tracking-wide uppercase text-taupe hover:text-midnight transition-colors font-semibold" onclick="expandAllRisks()">Expand All</button>
         </div>
       </div>
-      <div id="comment-risks" class="comment-panel no-print">
+      <div class="comment-panel no-print" id="comment-risks">
         <div class="comment-panel-inner">
-          <div class="comment-panel-label">Comment on Risks &amp; Mitigation</div>
-          <div class="comment-input-wrap">
-            <textarea id="ct-risks" class="comment-textarea" placeholder="Ask about an active risk — e.g. 'How long will the window lead time issue affect the schedule?' Your builder will address this in next week's update."></textarea> 
-            <button class="comment-submit">Submit</button>
+          <div class="comment-panel-label">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment on Risks & Mitigation
           </div>
-          <div id="cs-risks" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-input-wrap">
+            <textarea class="comment-textarea" id="ct-risks" placeholder="Ask about an active risk — e.g. 'How long will the window lead time issue affect the schedule?' Your builder will address this in next week's update."></textarea>
+            <button class="comment-submit" onclick="submitComment('risks')">Submit</button>
+          </div>
+          <div class="comment-submitted" id="cs-risks">
+            <i data-lucide="check-circle" style="width:12px;height:12px;color:#2A6049;"></i>
+            Comment received — will be addressed in your next update.
+          </div>
           <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
         </div>
       </div>
-      <div id="risk-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+      <div class="border border-fog/60 bg-white px-6" id="risk-list"></div>
     </section>
-    <div class="horizon-mark">
-      <div class="horizon-mark-dot">&nbsp;</div>
-    </div>
-<!-- ════ 5. CHANGE ORDER LOG ════ -->
-    <section id="sec-pco" class="mb-16 mt-10">
+
+    <div class="horizon-mark"><div class="horizon-mark-dot"></div></div>
+
+    <!-- ════ 5. CHANGE ORDER LOG ════ -->
+    <section class="mb-16 mt-10" id="sec-pco">
       <div class="section-header-wrap">
         <div class="section-eyebrow">Potential Change Order Log</div>
-        <button class="comment-trigger no-print">Comment</button>
+        <button class="comment-trigger no-print" onclick="toggleComment('comment-pco')">
+          <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+          Comment
+        </button>
       </div>
-      <div id="comment-pco" class="comment-panel no-print">
+      <div class="comment-panel no-print" id="comment-pco">
         <div class="comment-panel-inner">
-          <div class="comment-panel-label">Comment on Change Orders</div>
-          <div class="comment-input-wrap">
-            <textarea id="ct-pco" class="comment-textarea" placeholder="Ask about a change order — e.g. 'Is PCO-005 required or discretionary?' Your builder will address this in next week's update."></textarea> 
-            <button class="comment-submit">Submit</button>
+          <div class="comment-panel-label">
+            <i data-lucide="message-circle" style="width:10px;height:10px;"></i>
+            Comment on Change Orders
           </div>
-          <div id="cs-pco" class="comment-submitted">Comment received — will be addressed in your next update.</div>
+          <div class="comment-input-wrap">
+            <textarea class="comment-textarea" id="ct-pco" placeholder="Ask about a change order — e.g. 'Is PCO-005 required or discretionary?' Your builder will address this in next week's update."></textarea>
+            <button class="comment-submit" onclick="submitComment('pco')">Submit</button>
+          </div>
+          <div class="comment-submitted" id="cs-pco">
+            <i data-lucide="check-circle" style="width:12px;height:12px;color:#2A6049;"></i>
+            Comment received — will be addressed in your next update.
+          </div>
           <div class="comment-note">Comments are reviewed Monday morning. For urgent matters contact your builder directly.</div>
         </div>
       </div>
-      <div id="pco-summary" class="flex gap-10 mb-6">&nbsp;</div>
-      <div id="pco-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
+      <div class="flex gap-10 mb-6" id="pco-summary"></div>
+      <div class="border border-fog/60 bg-white px-6" id="pco-list"></div>
     </section>
-  </main><!-- ── QUESTIONS ADDRESSED ── -->
-  <div id="sec-questions" class="main" style="padding-top: 0;">
+
+  </main>
+
+  <!-- ── QUESTIONS ADDRESSED ── -->
+  <div class="main" id="sec-questions" style="padding-top:0;">
     <div class="max-w-7xl mx-auto px-10 pb-10">
-      <div class="horizon-mark">
-        <div class="horizon-mark-dot">&nbsp;</div>
-      </div>
+
+      <div class="horizon-mark"><div class="horizon-mark-dot"></div></div>
+
       <section class="mb-10 mt-10">
         <div class="flex items-center justify-between mb-6">
-          <div class="section-eyebrow" style="margin-bottom: 0;">Questions Addressed This Week</div>
-          <a id="submit-question-link" href="#" target="_blank" style="font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #2e86ab; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 5px;" rel="noopener">Submit a Question</a>
+          <div class="section-eyebrow" style="margin-bottom:0;">Questions Addressed This Week</div>
+          <a id="submit-question-link" href="#" target="_blank"
+             style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#2E86AB;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:5px;">
+            <i data-lucide="plus-circle" style="width:12px;height:12px;"></i>
+            Submit a Question
+          </a>
         </div>
-        <div id="questions-list" class="border border-fog/60 bg-white px-6">&nbsp;</div>
-        <p style="font-size: 9px; color: #9ca3af; font-style: italic; margin-top: 0.75rem;">Questions submitted through this portal are reviewed Monday morning and addressed in the following week's update. For urgent matters, contact your builder directly.</p>
+
+        <div class="border border-fog/60 bg-white px-6" id="questions-list"></div>
+
+        <p style="font-size:9px;color:#9CA3AF;font-style:italic;margin-top:0.75rem;">
+          Questions submitted through this portal are reviewed Monday morning and addressed in the following week's update. For urgent matters, contact your builder directly.
+        </p>
       </section>
+
     </div>
   </div>
+
   <div class="max-w-7xl mx-auto px-10 pb-6">
-    <div style="border-top: 1px solid rgba(214,211,203,0.5); padding-top: 1rem; display: flex; align-items: baseline; gap: 10px;">
-      <span style="font-size: 8px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #9ca3af; flex-shrink: 0;">Disclaimer</span>
-      <p style="font-size: 9.5px; color: #9ca3af; line-height: 1.65; font-style: italic;">For reporting and coordination purposes only. All financial figures, schedule dates, change order amounts, and project status information presented in this dashboard are compiled from builder-reported data and are provided for informational purposes only. Contractual amounts, approved change orders, and payment obligations remain governed by the executed construction agreement and approved project documents. Low Tide Ops does not approve payments, certify work-in-place, guarantee lender approval, or act as a legal or financial advisor. The construction agreement is the governing document for all costs, approvals, and responsibilities. Low Tide Ops is retained by and reports to the builder.</p>
+    <div style="
+      border-top: 1px solid rgba(214,211,203,0.5);
+      padding-top: 1rem;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    ">
+      <span style="
+        font-size: 8px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #9CA3AF;
+        flex-shrink: 0;
+      ">Disclaimer</span>
+      <p style="
+        font-size: 9.5px;
+        color: #9CA3AF;
+        line-height: 1.65;
+        font-style: italic;
+      ">For reporting and coordination purposes only. All financial figures, schedule dates, change order amounts, and project status information presented in this dashboard are compiled from builder-reported data and are provided for informational purposes only. Contractual amounts, approved change orders, and payment obligations remain governed by the executed construction agreement and approved project documents. Low Tide Ops does not approve payments, certify work-in-place, guarantee lender approval, or act as a legal or financial advisor. The construction agreement is the governing document for all costs, approvals, and responsibilities. Low Tide Ops is retained by and reports to the builder.</p>
     </div>
   </div>
-<!-- ── SITE FOOTER ── -->
+
+  <!-- ── SITE FOOTER ── -->
   <footer class="bg-midnight border-t border-white/10 py-6">
     <div class="max-w-7xl mx-auto px-10 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <div class="flex flex-col items-center gap-1">
-          <div class="w-1.5 h-1.5 rounded-full bg-tide/60">&nbsp;</div>
-          <div class="w-6 h-px bg-tide/40">&nbsp;</div>
+          <div class="w-1.5 h-1.5 rounded-full bg-tide/60"></div>
+          <div class="w-6 h-px bg-tide/40"></div>
         </div>
         <span class="text-[9px] tracking-architectural text-taupe uppercase">Low Tide Ops · Builder Experience Services</span>
       </div>
-      <div id="footer-date" class="font-mono text-[9px] text-taupe">&nbsp;</div>
+      <div class="font-mono text-[9px] text-taupe" id="footer-date"></div>
     </div>
   </footer>
-</div>
-<!-- /dashboard --> <!-- ════════════════════════════════════════════
+
+</div><!-- /dashboard -->
+
+
+<!-- ════════════════════════════════════════════
      PROJECT DATA — UPDATE THIS BLOCK WEEKLY
      ════════════════════════════════════════════
      INSTRUCTIONS:
@@ -1144,3 +1491,1002 @@
      Then replace this entire const block with the
      new one Claude returns.
 ════════════════════════════════════════════ -->
+<script>
+
+const PROJECT_DATA = {
+
+  // ── OWNER FEEDBACK ──────────────────────────
+  // feedbackUrl: your Google Form link for this project
+  // commentFormUrl: Google Form that accepts section + comment fields
+  // To set up: create a Google Form with two fields:
+  //   Field 1: "Section" (short answer, pre-filled via URL param)
+  //   Field 2: "Comment" (paragraph)
+  // Get the form's entry IDs and replace entry.XXXXXXXX below
+  commentFormBaseUrl: "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",
+  commentFormSectionEntry: "entry.1111111111",  // replace with your section field entry ID
+  commentFormTextEntry:    "entry.2222222222",  // replace with your comment field entry ID
+  // ownerQuestions: populated weekly from submitted questions
+  feedbackUrl: "https://forms.google.com/your-form-link-here",
+  ownerQuestions: [
+    {
+      question: "I noticed the schedule shows framing completion on July 3 — is that still realistic given the inspection delay?",
+      answer: "Great question. Your builder has adjusted the MEP sequencing to run concurrently where code permits, which minimizes the net schedule impact. The July 3 framing target remains intact and the builder is confident in that date.",
+      date: "Jun 8, 2026",
+      status: "answered",
+    },
+    {
+      question: "Can we schedule a site walk this weekend to see the second floor framing progress?",
+      answer: "Your builder would love to show you the progress. Please reach out to them directly to coordinate timing — they mentioned being available Saturday morning.",
+      date: "Jun 9, 2026",
+      status: "answered",
+    },
+  ],
+
+  // ── DATES ────────────────────────────────────
+  lastUpdated: "Monday, June 10, 2026",
+  nextUpdate:  "Monday, June 17, 2026",
+
+  // ── ACCESS ──────────────────────────────────
+  password: "harrington2025",
+
+  // ── PROJECT META ─────────────────────────────
+  project: {
+    name:             "The Harrington Residence",
+    address:          "412 Calafia Street · San Clemente, CA 92672",
+    builder:          "Sayer & Sons",
+    scope:            "4,800 SF · Ground-Up Luxury Coastal",
+    contractStart:    "Feb 2025",
+    targetCompletion: "Aug 2026",
+    currentPhase:     "Framing",
+    overallPct:       38,
+    weather:          { temp: "72°", condition: "Partly Cloudy", location: "San Clemente" },
+  },
+
+  // transactions status: "paid" | "pending-payment" | "approved" | "retainage"
+  financials: {
+    baseContract:    3200000,
+    approvedChanges: 38500,
+    pendingExposure: 74200,
+    capitalDeployed: 1216000,
+    retainagePct:    10,   // % withheld per contract until completion
+    categories: [
+      {
+        name:     "Site Work & Foundation",
+        budgeted: 320000,
+        deployed: 320000,
+        pct:      100,
+        status:   "complete",
+        transactions: [
+          { ref: "INV-001", date: "Feb 14, 2025", description: "Site clearing & grading",             amount: 48000,  status: "paid"            },
+          { ref: "INV-002", date: "Feb 28, 2025", description: "Excavation & soil export",            amount: 62000,  status: "paid"            },
+          { ref: "INV-003", date: "Mar 12, 2025", description: "Foundation formwork & reinforcement", amount: 84000,  status: "paid"            },
+          { ref: "INV-004", date: "Mar 26, 2025", description: "Concrete pour & curing",              amount: 78000,  status: "paid"            },
+          { ref: "INV-005", date: "Apr 8, 2025",  description: "Waterproofing & drainage board",      amount: 32000,  status: "paid"            },
+          { ref: "INV-006", date: "Apr 15, 2025", description: "Retainage release — foundation CO",   amount: 16000,  status: "paid"            },
+        ],
+      },
+      {
+        name:     "Framing & Structure",
+        budgeted: 480000,
+        deployed: 345600,
+        pct:      72,
+        status:   "active",
+        transactions: [
+          { ref: "INV-007", date: "Apr 22, 2025", description: "First floor framing labor & material", amount: 128000, status: "paid"            },
+          { ref: "INV-008", date: "May 14, 2025", description: "Second floor framing labor",           amount: 96000,  status: "paid"            },
+          { ref: "INV-009", date: "May 30, 2025", description: "Roof structure & sheathing — partial", amount: 84000,  status: "paid"            },
+          { ref: "INV-010", date: "Jun 10, 2025", description: "Framing completion draw — balance",    amount: 37600,  status: "pending-payment" },
+          { ref: "EST-001", date: "Jul 3, 2025",  description: "Roof sheathing completion — est.",     amount: 64000,  status: "approved"        },
+          { ref: "EST-002", date: "Jul 15, 2025", description: "Final framing close-out — est.",       amount: 70400,  status: "approved"        },
+        ],
+      },
+      {
+        name:     "Roofing & Exterior Envelope",
+        budgeted: 384000,
+        deployed: 30720,
+        pct:      8,
+        status:   "active",
+        transactions: [
+          { ref: "INV-011", date: "May 5, 2025",  description: "Roofing material deposit — long lead", amount: 30720,  status: "paid"            },
+          { ref: "EST-003", date: "Aug 2025",      description: "Roofing installation — est.",          amount: 180000, status: "approved"        },
+          { ref: "EST-004", date: "Sep 2025",      description: "Exterior cladding & waterproofing",    amount: 120000, status: "approved"        },
+          { ref: "EST-005", date: "Oct 2025",      description: "Gutters, flashing & completion",       amount: 53280,  status: "approved"        },
+        ],
+      },
+      {
+        name:     "MEP Systems",
+        budgeted: 512000,
+        deployed: 76800,
+        pct:      15,
+        status:   "active",
+        transactions: [
+          { ref: "INV-012", date: "Apr 30, 2025", description: "HVAC equipment deposit",               amount: 38400,  status: "paid"            },
+          { ref: "INV-013", date: "May 20, 2025", description: "Plumbing rough-in deposit",            amount: 19200,  status: "paid"            },
+          { ref: "INV-014", date: "Jun 5, 2025",  description: "Electrical panel & conduit deposit",   amount: 19200,  status: "pending-payment" },
+          { ref: "EST-006", date: "Jul–Sep 2025",  description: "MEP rough-in labor & materials",      amount: 307200, status: "approved"        },
+          { ref: "EST-007", date: "Q1 2026",       description: "MEP trim-out & fixture installation",  amount: 128000, status: "approved"        },
+        ],
+      },
+      {
+        name:     "Windows & Doors",
+        budgeted: 256000,
+        deployed: 51200,
+        pct:      20,
+        status:   "active",
+        transactions: [
+          { ref: "INV-015", date: "May 10, 2025", description: "Window package — 20% deposit",         amount: 51200,  status: "paid"            },
+          { ref: "EST-008", date: "Oct 2025",      description: "Window package — balance on delivery", amount: 153600, status: "approved"        },
+          { ref: "EST-009", date: "Nov 2025",      description: "Door package & installation",          amount: 51200,  status: "approved"        },
+        ],
+      },
+      {
+        name:     "Interior Finishes",
+        budgeted: 640000,
+        deployed: 0,
+        pct:      0,
+        status:   "pending",
+        transactions: [
+          { ref: "EST-010", date: "Q4 2025",       description: "Drywall — hang, tape, texture",        amount: 96000,  status: "approved"        },
+          { ref: "EST-011", date: "Q1 2026",        description: "Flooring — hardwood & tile",           amount: 128000, status: "approved"        },
+          { ref: "EST-012", date: "Q1 2026",        description: "Cabinetry — kitchen & bathrooms",      amount: 192000, status: "approved"        },
+          { ref: "EST-013", date: "Q2 2026",        description: "Paint, millwork & trim",               amount: 96000,  status: "approved"        },
+          { ref: "EST-014", date: "Q2 2026",        description: "Fixtures, hardware & accessories",     amount: 128000, status: "approved"        },
+        ],
+      },
+      {
+        name:     "Site Improvements & Landscaping",
+        budgeted: 192000,
+        deployed: 0,
+        pct:      0,
+        status:   "pending",
+        transactions: [
+          { ref: "EST-015", date: "Q2 2026",        description: "Pool & spa construction",              amount: 96000,  status: "approved"        },
+          { ref: "EST-016", date: "Q2 2026",        description: "Hardscape & driveway",                 amount: 48000,  status: "approved"        },
+          { ref: "EST-017", date: "Q3 2026",        description: "Landscaping & irrigation",             amount: 48000,  status: "approved"        },
+        ],
+      },
+      {
+        name:     "Builder Fee & General Conditions",
+        budgeted: 416000,
+        deployed: 158080,
+        pct:      38,
+        status:   "active",
+        transactions: [
+          { ref: "GC-001",  date: "Feb 28, 2025", description: "General conditions — Feb",              amount: 18000,  status: "paid"            },
+          { ref: "GC-002",  date: "Mar 31, 2025", description: "General conditions — Mar",              amount: 18000,  status: "paid"            },
+          { ref: "GC-003",  date: "Apr 30, 2025", description: "General conditions — Apr",              amount: 18000,  status: "paid"            },
+          { ref: "GC-004",  date: "May 31, 2025", description: "General conditions — May",              amount: 18000,  status: "paid"            },
+          { ref: "GC-005",  date: "May 31, 2025", description: "Builder fee draw #1 — 10%",             amount: 41600,  status: "paid"            },
+          { ref: "GC-006",  date: "Jun 10, 2025", description: "General conditions — Jun (partial)",    amount: 9000,   status: "pending-payment" },
+          { ref: "GC-007",  date: "Jun 30, 2025", description: "Builder fee draw #2 — 5%",              amount: 20800,  status: "approved"        },
+          { ref: "GC-008",  date: "Monthly",       description: "Ongoing GC — Jul 2025 through completion", amount: 114680, status: "approved"     },
+        ],
+      },
+    ],
+  },
+
+  // ── HORIZON OUTLOOK ──────────────────────────
+  // horizon: "30D" | "60D" | "90D"
+  // status:  "complete" | "active" | "upcoming"
+  milestones: [
+    { horizon: "30D", phase: "Framing",     task: "Second floor framing complete",    date: "Jun 27", status: "active"   },
+    { horizon: "30D", phase: "Framing",     task: "Roof sheathing installation",       date: "Jul 3",  status: "upcoming" },
+    { horizon: "60D", phase: "MEP Rough",   task: "Mechanical rough-in begins",        date: "Jul 18", status: "upcoming" },
+    { horizon: "60D", phase: "MEP Rough",   task: "Electrical rough-in complete",      date: "Aug 1",  status: "upcoming" },
+    { horizon: "90D", phase: "Insulation",  task: "Insulation inspection & approval",  date: "Aug 22", status: "upcoming" },
+    { horizon: "90D", phase: "Drywall",     task: "Drywall hang begins",               date: "Sep 5",  status: "upcoming" },
+  ],
+
+  // ── SELECTION LEDGER ─────────────────────────
+  // urgency: "critical" | "soon" | "upcoming"
+  // status:  "pending" | "approved" | "decided"
+  decisions: [
+    {
+      item:    "Exterior cladding material selection",
+      context: "Required before framing closure — gates waterproofing spec",
+      status:  "pending",
+      urgency: "critical",
+      dueDate: "Jun 20",
+      impact:  "Critical path — 2 week delay risk",
+    },
+    {
+      item:    "Kitchen cabinetry vendor approval",
+      context: "Long-lead procurement item — 14-week lead time",
+      status:  "pending",
+      urgency: "soon",
+      dueDate: "Jul 1",
+      impact:  "$0 — selection within budget",
+    },
+    {
+      item:    "Primary suite bathroom fixture package",
+      context: "14-week lead time from European supplier",
+      status:  "pending",
+      urgency: "soon",
+      dueDate: "Jul 15",
+      impact:  "Up to +$18,000 depending on selection",
+    },
+    {
+      item:    "Home automation system scope",
+      context: "Affects MEP rough-in conduit placement",
+      status:  "pending",
+      urgency: "upcoming",
+      dueDate: "Aug 1",
+      impact:  "$45,000–$120,000 range depending on scope",
+    },
+    {
+      item:    "Pool equipment and deck finish",
+      context: "Independent of critical path — can decide later",
+      status:  "pending",
+      urgency: "upcoming",
+      dueDate: "Sep 1",
+      impact:  "$0 — within current allowance",
+    },
+  ],
+
+  // ── DEFENSIVE MITIGATION ─────────────────────
+  // severity: "high" | "medium" | "low"
+  // status:   "active" | "monitoring" | "mitigated"
+  risks: [
+    {
+      category: "Schedule · Procurement",
+      severity: "high",
+      status:   "active",
+      description: "Window and door package lead times have extended to 18 weeks industry-wide. Current order placement deadline is July 15 to maintain schedule integrity.",
+      mitigation:  "Builder has identified secondary supplier with 14-week lead time. Owner exterior cladding selection required by June 20 to allow concurrent ordering. Pre-scheduling procurement meeting for June 22.",
+    },
+    {
+      category: "Budget · Change Orders",
+      severity: "medium",
+      status:   "active",
+      description: "Three pending change orders totaling $74,200 are under review. If all approved, this represents a 2.3% increase to base contract value — within standard contingency range.",
+      mitigation:  "All PCOs reviewed by builder for necessity prior to submission. Owner review and written approval requested within 10 business days. No schedule impact if approved by June 28.",
+    },
+    {
+      category: "Schedule · Inspection",
+      severity: "medium",
+      status:   "monitoring",
+      description: "City of San Clemente framing inspections showing 8–12 day scheduling delays due to inspector availability through Q3 2025.",
+      mitigation:  "Builder pre-scheduled framing inspection for July 8. MEP rough-in sequencing adjusted to proceed concurrently where code permits, minimizing net schedule impact.",
+    },
+    {
+      category: "Design · Decision Timing",
+      severity: "high",
+      status:   "active",
+      description: "Exterior cladding selection has not been finalized. This decision gates framing closure, waterproofing membrane specification, and window/door ordering — all on the critical path.",
+      mitigation:  "Builder has prepared three pre-approved material options for owner review. Decision meeting recommended before June 20. Builder available any day this week for a 30-minute selection session.",
+    },
+  ],
+
+  // ── CHANGE ORDER LOG ─────────────────────────
+  // status: "approved" | "pending" | "rejected"
+  pcos: [
+    {
+      ref:         "PCO-004",
+      description: "Upgraded foundation drainage system",
+      cost:        38500,
+      status:      "approved",
+      date:        "Jun 2",
+      note:        "Recommended by geotechnical engineer based on soil report. Protects foundation long-term.",
+    },
+    {
+      ref:         "PCO-005",
+      description: "Structural beam upsizing — main span",
+      cost:        42000,
+      status:      "pending",
+      date:        "Jun 5",
+      note:        "Required per revised structural engineer calculations. No design change — purely structural.",
+    },
+    {
+      ref:         "PCO-006",
+      description: "Secondary egress window relocation",
+      cost:        18200,
+      status:      "pending",
+      date:        "Jun 8",
+      note:        "City required relocation for code compliance. Not discretionary.",
+    },
+    {
+      ref:         "PCO-007",
+      description: "Additional site drainage — rear yard",
+      cost:        14000,
+      status:      "pending",
+      date:        "Jun 9",
+      note:        "Proactive addition recommended to address grading discovered during foundation work.",
+    },
+  ],
+
+};
+
+
+// ════════════════════════════════════════════
+// RENDER ENGINE — DO NOT MODIFY
+// ════════════════════════════════════════════
+
+// ── PASSWORD GATE ────────────────────────────
+function checkPassword() {
+  const input = document.getElementById('gate-input').value;
+  const error = document.getElementById('gate-error');
+  if (input === PROJECT_DATA.password) {
+    document.getElementById('gate').style.opacity = '0';
+    document.getElementById('gate').style.transition = 'opacity 0.5s ease';
+    setTimeout(() => {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('dashboard').classList.add('visible');
+      renderDashboard();
+    }, 500);
+  } else {
+    error.textContent = 'Incorrect access code. Please try again.';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+    setTimeout(() => error.textContent = '', 3000);
+  }
+}
+
+// Allow Enter key on password field
+document.getElementById('gate-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPassword();
+});
+
+// ── FORMAT HELPERS ───────────────────────────
+function fmt(n) {
+  if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1000)    return '$' + Math.round(n/1000) + 'K';
+  return '$' + n.toLocaleString();
+}
+
+function fmtFull(n) {
+  return '$' + Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function statusBadge(status) {
+  const map = {
+    complete:   { dot: 'bg-ok',    text: 'text-ok',    label: 'Complete'    },
+    active:     { dot: 'bg-tide',  text: 'text-tide',  label: 'In Progress' },
+    upcoming:   { dot: 'bg-fog',   text: 'text-stone', label: 'Upcoming'    },
+    pending:    { dot: 'bg-amber', text: 'text-amber', label: 'Pending'     },
+    approved:   { dot: 'bg-ok',    text: 'text-ok',    label: 'Approved'    },
+    rejected:   { dot: 'bg-risk',  text: 'text-risk',  label: 'Rejected'    },
+    monitoring: { dot: 'bg-tide',  text: 'text-tide',  label: 'Monitoring'  },
+    mitigated:  { dot: 'bg-ok',    text: 'text-ok',    label: 'Mitigated'   },
+    decided:    { dot: 'bg-ok',    text: 'text-ok',    label: 'Decided'     },
+  };
+  const s = map[status] || map.pending;
+  return `<span class="badge">
+    <span class="badge-dot ${s.dot}"></span>
+    <span class="${s.text} text-[8px] tracking-wide uppercase font-semibold">${s.label}</span>
+  </span>`;
+}
+
+function urgencyBadge(urgency, daysLeft) {
+  const map = {
+    critical: 'bg-red-50 text-risk border border-red-200',
+    soon:     'bg-amber-50 text-amber border border-amber-200',
+    upcoming: 'bg-gray-50 text-stone border border-gray-200',
+  };
+  return `<span class="urgency-pill ${map[urgency] || map.upcoming}">
+    <span class="font-mono font-bold">${daysLeft}d</span>
+  </span>`;
+}
+
+function daysUntil(dateStr) {
+  // dateStr is "Jun 20" format — parse for current year
+  const year = new Date().getFullYear();
+  const d = new Date(`${dateStr} ${year}`);
+  const diff = Math.ceil((d - Date.now()) / 86400000);
+  return diff;
+}
+
+function severityColor(severity) {
+  return severity === 'high' ? 'bg-red-50 border-l-2 border-risk' :
+         severity === 'medium' ? 'bg-amber-50 border-l-2 border-amber' :
+         'bg-gray-50 border-l-2 border-fog';
+}
+
+// ── MAIN RENDER ──────────────────────────────
+function renderDashboard() {
+  const D = PROJECT_DATA;
+  const P = D.project;
+  const F = D.financials;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Dates
+  document.getElementById('header-date').textContent = dateStr;
+  document.getElementById('footer-date').textContent = 'Data current as of ' + D.lastUpdated;
+
+  // ── LAST UPDATED BAR ────────────────────────
+  document.getElementById('last-updated-text').innerHTML =
+    `Dashboard current as of <strong>${D.lastUpdated}</strong>`;
+  document.getElementById('last-updated-next').textContent =
+    `Next update: ${D.nextUpdate}`;
+
+  // Weather
+  document.getElementById('header-weather').innerHTML = `
+    <span class="font-mono text-lg text-white font-medium">${P.weather.temp}</span>
+    <span class="text-[8px] tracking-wide text-taupe uppercase">${P.weather.condition}</span>
+    <span class="text-[8px] text-taupe/60 border-l border-white/10 pl-3 ml-1">${P.weather.location}</span>
+  `;
+
+  // Hero
+  document.getElementById('hero-label').textContent = 'Prepared by Low Tide Ops · Confidential Owner Dashboard';
+  document.getElementById('hero-project-name').textContent = P.name;
+  document.getElementById('hero-address').textContent = P.address;
+  document.getElementById('hero-pct').textContent = P.overallPct + '%';
+
+  // On mobile show fewer meta items to keep hero clean
+  const metaItems = window.DEVICE.mobile ? [
+    ['Contract Value', fmt(F.baseContract)],
+    ['Phase', P.currentPhase],
+    ['Target Completion', P.targetCompletion],
+  ] : [
+    ['Contract Value', fmt(F.baseContract)],
+    ['Project Start',  P.contractStart],
+    ['Target Completion', P.targetCompletion],
+    ['Builder', P.builder],
+    ['Scope', P.scope],
+  ];
+
+  document.getElementById('hero-meta').innerHTML = metaItems.map(([label, val]) => `
+    <div class="flex flex-col gap-1">
+      <span class="text-[8px] tracking-architectural text-taupe uppercase">${label}</span>
+      <span class="font-mono text-[11px] text-fog">${val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('hero-phase-badge').innerHTML = `
+    <div class="w-2 h-2 rounded-full bg-tide animate-pulse"></div>
+    <span class="text-[9px] tracking-architectural text-tide uppercase font-semibold">Active · ${P.currentPhase} Phase</span>
+  `;
+
+  document.getElementById('hero-progress-bar').innerHTML = `
+    <div class="progress-track">
+      <div class="progress-fill bg-tide" style="width:${P.overallPct}%"></div>
+    </div>
+  `;
+
+  // ── FINANCIAL MATRIX ────────────────────────
+  const ACAC = F.baseContract + F.approvedChanges + F.pendingExposure;
+  const variance = F.capitalDeployed - (F.baseContract * (P.overallPct / 100));
+  const pctDeployed = Math.round(F.capitalDeployed / F.baseContract * 100);
+
+  document.getElementById('financial-matrix').innerHTML = `
+    <div class="fin-row">
+      <div class="fin-cell">
+        <div class="fin-label">Base Contract</div>
+        <div class="fin-value">${fmt(F.baseContract)}</div>
+        <div class="fin-note">Total authorized scope</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">Approved Changes</div>
+        <div class="fin-value variance-positive">+${fmt(F.approvedChanges)}</div>
+        <div class="fin-note">PCOs executed to date</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">Pending Exposure</div>
+        <div class="fin-value variance-pending">+${fmt(F.pendingExposure)}</div>
+        <div class="fin-note">Under review — not yet approved</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">Anticipated Cost at Completion</div>
+        <div class="fin-value">${fmt(ACAC)}</div>
+        <div class="fin-note">If all pending PCOs approved</div>
+      </div>
+    </div>
+    <div class="fin-row">
+      <div class="fin-cell">
+        <div class="fin-label">Capital Deployed</div>
+        <div class="fin-value">${fmt(F.capitalDeployed)}</div>
+        <div class="fin-note">Invoiced to date</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">Remaining Budget</div>
+        <div class="fin-value">${fmt(F.baseContract - F.capitalDeployed)}</div>
+        <div class="fin-note">Projected balance</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">% of Contract Deployed</div>
+        <div class="fin-value">${pctDeployed}%</div>
+        <div class="fin-note">vs. ${P.overallPct}% physical progress</div>
+      </div>
+      <div class="fin-cell">
+        <div class="fin-label">Budget Health</div>
+        <div class="fin-value text-[14px] ${Math.abs(variance) < 50000 ? 'variance-positive' : 'variance-negative'}">
+          ${Math.abs(variance) < 50000 ? 'On Track' : variance > 0 ? 'Over Pace' : 'Under Pace'}
+        </div>
+        <div class="fin-note">Spend vs. progress alignment</div>
+      </div>
+    </div>
+  `;
+
+  // Budget category breakdown with transaction ledger
+  document.getElementById('budget-progress-wrap').innerHTML = `
+    <div class="section-eyebrow" style="margin-bottom:1rem;">Budget Ledger — Full Invoice & Payment Record</div>
+    <div class="border border-fog/60 bg-white">
+
+      <!-- Column headers -->
+      <div class="grid gap-3 px-6 py-3 border-b border-fog/60 bg-sand/30"
+           style="grid-template-columns:1fr 100px auto auto auto;">
+        <span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold">Category</span>
+        <span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold budget-cat-bar-col">Progress</span>
+        <span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold text-right">Budgeted</span>
+        <span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold text-right">Deployed</span>
+        <span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold text-right">% Used</span>
+      </div>
+
+      ${F.categories.map((c, ci) => {
+        const paid      = c.transactions.filter(t => t.status === 'paid').reduce((s,t) => s+t.amount, 0);
+        const pending   = c.transactions.filter(t => t.status === 'pending-payment').reduce((s,t) => s+t.amount, 0);
+        const approved  = c.transactions.filter(t => t.status === 'approved').reduce((s,t) => s+t.amount, 0);
+        const retainage = Math.round(paid * (F.retainagePct / 100));
+
+        return `
+        <div class="cat-row" id="cat-row-${ci}">
+
+          <!-- Summary bar — click to expand -->
+          <div class="cat-summary" onclick="toggleCat(${ci})">
+            <div class="flex items-center gap-3">
+              <div class="w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                c.status === 'complete' ? 'bg-ok' :
+                c.status === 'active'   ? 'bg-tide' : 'bg-fog'
+              }"></div>
+              <div>
+                <div class="text-[11px] font-medium text-midnight">${c.name}</div>
+                <div class="text-[9px] text-stone mt-0.5">
+                  ${c.transactions.length} transaction${c.transactions.length !== 1 ? 's' : ''} ·
+                  <span class="text-ok">${c.transactions.filter(t=>t.status==='paid').length} paid</span>
+                  ${pending > 0 ? `· <span class="text-amber">${c.transactions.filter(t=>t.status==='pending-payment').length} pending</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="progress-track budget-cat-bar-col" style="margin-top:0;">
+              <div class="progress-fill ${
+                c.status === 'complete' ? 'bg-ok' :
+                c.status === 'active'   ? 'bg-tide' : 'bg-fog'
+              }" style="width:${c.pct}%"></div>
+            </div>
+            <div class="font-mono text-[10px] text-taupe text-right">${fmtFull(c.budgeted)}</div>
+            <div class="font-mono text-[10px] font-medium text-midnight text-right">${c.deployed > 0 ? fmtFull(c.deployed) : '—'}</div>
+            <div class="flex items-center gap-2 justify-end">
+              <span class="font-mono text-[10px] font-semibold ${
+                c.status === 'complete' ? 'text-ok' :
+                c.status === 'active'   ? 'text-tide' : 'text-stone'
+              }">${c.pct > 0 ? c.pct + '%' : '—'}</span>
+              <i data-lucide="chevron-down" class="cat-chevron w-3.5 h-3.5" id="cat-chev-${ci}" style="width:14px;height:14px;"></i>
+            </div>
+          </div>
+
+          <!-- Transaction detail — hidden until expanded -->
+          <div class="cat-transactions" id="cat-txn-${ci}">
+            <table class="txn-table">
+              <thead>
+                <tr class="txn-header">
+                  <th>Ref</th>
+                  <th>Date</th>
+                  <th style="width:40%">Description</th>
+                  <th style="text-align:right;">Amount</th>
+                  <th style="text-align:right;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${c.transactions.map(t => `
+                  <tr class="txn-row">
+                    <td class="txn-ref">${t.ref}</td>
+                    <td class="txn-date">${t.date}</td>
+                    <td class="txn-desc">${t.description}</td>
+                    <td class="txn-amount ${
+                      t.status === 'paid'            ? 'text-midnight' :
+                      t.status === 'pending-payment' ? 'text-amber'    :
+                      t.status === 'approved'        ? 'text-ocean'    : 'text-stone'
+                    }">${fmtFull(t.amount)}</td>
+                    <td class="txn-status" style="text-align:right;">
+                      <span class="txn-pill ${
+                        t.status === 'paid'            ? 'txn-pill-paid'     :
+                        t.status === 'pending-payment' ? 'txn-pill-pending'  :
+                        t.status === 'approved'        ? 'txn-pill-approved' : 'txn-pill-retainage'
+                      }">${
+                        t.status === 'paid'            ? 'Paid'              :
+                        t.status === 'pending-payment' ? 'Pending Payment'   :
+                        t.status === 'approved'        ? 'Approved / Not Yet Billed' : 'Retainage'
+                      }</span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr class="txn-totals">
+                  <td colspan="3" style="font-family:'Inter',sans-serif;">
+                    <span style="color:#2A6049;">Paid: ${fmtFull(paid)}</span>
+                    ${pending > 0 ? `&nbsp;&nbsp;·&nbsp;&nbsp;<span style="color:#B5621A;">Pending: ${fmtFull(pending)}</span>` : ''}
+                    ${approved > 0 ? `&nbsp;&nbsp;·&nbsp;&nbsp;<span style="color:#1C4F72;">Committed: ${fmtFull(approved)}</span>` : ''}
+                  </td>
+                  <td style="font-family:'JetBrains Mono',monospace;text-align:right;color:#1A1F2E;">
+                    ${fmtFull(paid + pending + approved)}
+                  </td>
+                  <td style="text-align:right;color:#6B7280;font-size:10px;">
+                    of ${fmtFull(c.budgeted)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+            ${F.retainagePct > 0 && paid > 0 ? `
+              <div class="retainage-note">
+                Retainage withheld: ${fmtFull(retainage)} (${F.retainagePct}% of paid invoices per contract) — released at substantial completion.
+              </div>
+            ` : ''}
+          </div>
+
+        </div>
+      `}).join('')}
+
+      <!-- Grand total row -->
+      <div class="grid gap-3 px-6 py-4 border-t-2 border-midnight/20 bg-sand/30"
+           style="grid-template-columns:1fr 100px auto auto auto;">
+        <div class="text-[11px] font-semibold text-midnight">Total Project</div>
+        <div class="progress-track budget-cat-bar-col" style="margin-top:0;">
+          <div class="progress-fill bg-midnight" style="width:${pctDeployed}%"></div>
+        </div>
+        <div class="font-mono text-[10px] font-semibold text-midnight text-right">${fmtFull(F.baseContract)}</div>
+        <div class="font-mono text-[10px] font-semibold text-midnight text-right">${fmtFull(F.capitalDeployed)}</div>
+        <div class="font-mono text-[11px] font-semibold text-midnight text-right">${pctDeployed}%</div>
+      </div>
+
+    </div>
+  `;
+
+  // ── HORIZON OUTLOOK ──────────────────────────
+  renderMilestones('all');
+
+  // ── SELECTION LEDGER ────────────────────────
+  if (!D.decisions.length) {
+    document.getElementById('ledger-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="check-circle" style="width:16px;height:16px;color:#2A6049;"></i></div>
+        <div class="empty-title">No pending decisions</div>
+        <div class="empty-sub">All selections are current. Your builder will flag new decision items here as they arise throughout the build.</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('ledger-list').innerHTML = D.decisions
+    .sort((a, b) => daysUntil(a.dueDate) - daysUntil(b.dueDate))
+    .map((dec, i) => {
+      const days = daysUntil(dec.dueDate);
+      return `
+        <div class="ledger-row ${i === 0 ? 'bg-red-50/30' : ''}">
+          <div>
+            <div class="text-[11px] font-medium text-midnight">
+              ${dec.item}
+              ${i === 0 ? '<span class="ml-2 text-[7px] tracking-[0.15em] uppercase text-risk font-bold">Critical Path</span>' : ''}
+            </div>
+            <div class="text-[10px] text-taupe mt-1">${dec.context}</div>
+          </div>
+          <div>${statusBadge(dec.status)}</div>
+          <div>
+            <div class="font-mono text-[11px] text-midnight">${dec.dueDate}</div>
+            <div class="mt-1">${urgencyBadge(dec.urgency, days)}</div>
+          </div>
+          <div class="text-[10px] text-taupe leading-relaxed">${dec.impact}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── DEFENSIVE MITIGATION ────────────────────
+  if (!D.risks.length) {
+    document.getElementById('risk-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="shield-check" style="width:16px;height:16px;color:#2A6049;"></i></div>
+        <div class="empty-title">No active risks this week</div>
+        <div class="empty-sub">Your builder has not flagged any active risks or issues requiring attention. This section will populate if risks are identified.</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('risk-list').innerHTML = D.risks.map((r, i) => `
+    <div class="accordion-item">
+      <button class="accordion-trigger" onclick="toggleAccordion(${i})">
+        <div class="flex items-center gap-4">
+          <div class="w-2 h-2 rounded-full flex-shrink-0 ${r.severity === 'high' ? 'bg-risk' : r.severity === 'medium' ? 'bg-amber' : 'bg-taupe'}"></div>
+          <div>
+            <div class="text-[9px] tracking-wide uppercase font-semibold ${r.severity === 'high' ? 'text-risk' : r.severity === 'medium' ? 'text-amber' : 'text-taupe'}">${r.category}</div>
+            <div class="text-[12px] font-medium text-midnight mt-0.5">${r.description.substring(0, 80)}${r.description.length > 80 ? '…' : ''}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          ${statusBadge(r.status)}
+          <i data-lucide="chevron-down" class="accordion-chevron w-4 h-4 text-taupe" id="chevron-${i}"></i>
+        </div>
+      </button>
+      <div class="accordion-body" id="body-${i}">
+        <div class="${severityColor(r.severity)} p-4 mb-2">
+          <div class="text-[8px] tracking-wide uppercase font-semibold text-taupe mb-2">Risk Description</div>
+          <div class="text-[12px] text-midnight leading-relaxed">${r.description}</div>
+        </div>
+        <div class="flex gap-3 items-start pl-4 border-l-2 border-tide/40">
+          <i data-lucide="arrow-up-right" class="w-3 h-3 text-tide mt-0.5 flex-shrink-0"></i>
+          <div>
+            <div class="text-[8px] tracking-wide uppercase font-semibold text-taupe mb-1">Mitigation Strategy</div>
+            <div class="text-[11px] text-taupe leading-relaxed">${r.mitigation}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  } // end risks else
+
+  // ── FEEDBACK BUTTON ─────────────────────────
+  document.getElementById('feedback-btn').href = D.feedbackUrl;
+  document.getElementById('submit-question-link').href = D.feedbackUrl;
+
+  // ── QUESTIONS ADDRESSED ─────────────────────
+  if (!D.ownerQuestions || !D.ownerQuestions.length) {
+    document.getElementById('questions-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="message-square" style="width:16px;height:16px;color:#9CA3AF;"></i></div>
+        <div class="empty-title">No questions submitted this week</div>
+        <div class="empty-sub">Use the "Submit a Question" button above to send a question. All submissions are reviewed Monday morning and addressed in the next update.</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('questions-list').innerHTML = D.ownerQuestions.map(q => `
+      <div class="qa-item">
+        <div class="qa-question">
+          <span class="qa-q-label">Q</span>
+          <span class="qa-q-text">${q.question}</span>
+        </div>
+        <div class="qa-answer">
+          <span class="qa-a-label">A</span>
+          <div>
+            <div class="qa-a-text">${q.answer}</div>
+            <div class="qa-date">${q.date}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  const pendingTotal  = D.pcos.filter(p => p.status === 'pending').reduce((s, p) => s + p.cost, 0);
+  const approvedTotal = D.pcos.filter(p => p.status === 'approved').reduce((s, p) => s + p.cost, 0);
+
+  document.getElementById('pco-summary').innerHTML = [
+    ['Pending Impact',   fmt(pendingTotal),              'text-amber'],
+    ['Approved to Date', fmt(approvedTotal),             'text-ok'],
+    ['Total Exposure',   fmt(pendingTotal + approvedTotal), 'text-midnight'],
+  ].map(([label, val, cls]) => `
+    <div class="flex items-center gap-3">
+      <span class="text-[8px] tracking-architectural uppercase text-taupe">${label}</span>
+      <span class="font-mono text-[14px] font-medium ${cls}">${val}</span>
+    </div>
+  `).join('<div class="w-px h-6 bg-fog"></div>');
+
+  if (!D.pcos.length) {
+    document.getElementById('pco-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="file-check" style="width:16px;height:16px;color:#2A6049;"></i></div>
+        <div class="empty-title">No change orders on record</div>
+        <div class="empty-sub">There are no potential change orders to report this week. Any budget variances or scope changes will appear here when submitted by your builder.</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('pco-list').innerHTML = `
+    <div class="grid grid-cols-4 gap-4 px-0 py-3 border-b border-fog/60 pco-grid">
+      ${['Description','Cost Impact','Status','Notes'].map(h =>
+        `<span class="text-[8px] tracking-[0.2em] uppercase text-stone font-semibold">${h}</span>`
+      ).join('')}
+    </div>
+    ${D.pcos.map(p => `
+      <div class="grid grid-cols-4 gap-4 py-4 border-b border-fog/30 last:border-b-0 items-start hover:bg-sand/20 transition-colors pco-grid">
+        <div>
+          <div class="text-[11px] font-medium text-midnight">${p.description}</div>
+          <div class="font-mono text-[9px] text-stone mt-1">${p.ref} · ${p.date}</div>
+        </div>
+        <div class="font-mono text-[12px] font-medium text-midnight">${fmtFull(p.cost)}</div>
+        <div>${statusBadge(p.status)}</div>
+        <div class="text-[10px] text-taupe leading-relaxed">${p.note}</div>
+      </div>
+    `).join('')}
+  `;
+  } // end pco else
+
+  // Init Lucide icons
+  lucide.createIcons();
+}
+
+// ── MILESTONE FILTER ────────────────────────
+function renderMilestones(filter) {
+  const milestones = filter === 'all'
+    ? PROJECT_DATA.milestones
+    : PROJECT_DATA.milestones.filter(m => m.horizon === filter);
+
+  if (!milestones.length) {
+    document.getElementById('horizon-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="calendar" style="width:16px;height:16px;color:#9CA3AF;"></i></div>
+        <div class="empty-title">No milestones in this window</div>
+        <div class="empty-sub">There are no scheduled milestones in the selected timeframe. Check back next week or select a broader horizon.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  document.getElementById('horizon-list').innerHTML = milestones.map(m => `
+    <div class="timeline-item" data-horizon="${m.horizon}">
+      <span class="tl-horizon">${m.horizon}</span>
+      <div class="flex items-center gap-3">
+        <div class="tl-status-dot flex-shrink-0 ${
+          m.status === 'complete' ? 'bg-ok' :
+          m.status === 'active'   ? 'bg-tide' : 'bg-fog'
+        }"></div>
+        <div>
+          <span class="text-[12px] font-medium text-midnight">${m.phase}</span>
+          <span class="text-[12px] text-taupe ml-2">/ ${m.task}</span>
+        </div>
+      </div>
+      <div class="font-mono text-[11px] text-midnight">${m.date}</div>
+      <div>${statusBadge(m.status)}</div>
+    </div>
+  `).join('');
+}
+
+function filterHorizon(filter, btn) {
+  document.querySelectorAll('.hz-tab').forEach(b => {
+    b.classList.remove('active', 'text-tide', 'border-tide');
+    b.classList.add('text-taupe', 'border-transparent');
+  });
+  btn.classList.add('active', 'text-tide', 'border-tide');
+  btn.classList.remove('text-taupe', 'border-transparent');
+  renderMilestones(filter);
+}
+
+// ── BUDGET CATEGORY ACCORDION ────────────────
+function toggleCat(i) {
+  const txn   = document.getElementById('cat-txn-' + i);
+  const chev  = document.getElementById('cat-chev-' + i);
+  const isOpen = txn.classList.contains('open');
+  txn.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+  if (!isOpen) lucide.createIcons();
+}
+
+// ── SECTION COMMENTS ─────────────────────────
+function toggleComment(panelId) {
+  const panel   = document.getElementById(panelId);
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  // Close all panels first
+  document.querySelectorAll('.comment-panel').forEach(p => p.classList.remove('open'));
+  // Open this one if it was closed
+  if (!isOpen) {
+    panel.classList.add('open');
+    // Focus textarea
+    setTimeout(() => {
+      const ta = panel.querySelector('.comment-textarea');
+      if (ta) ta.focus();
+    }, 350);
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function submitComment(section) {
+  const D       = PROJECT_DATA;
+  const ta      = document.getElementById('ct-' + section);
+  const confirm = document.getElementById('cs-' + section);
+  const text    = ta ? ta.value.trim() : '';
+
+  if (!text) {
+    ta.style.borderColor = '#B5621A';
+    ta.placeholder = 'Please enter a comment before submitting.';
+    setTimeout(() => { ta.style.borderColor = ''; }, 2000);
+    return;
+  }
+
+  // Build Google Form submission URL with pre-filled values
+  const sectionLabel = {
+    financials: 'Financial Matrix',
+    horizon:    'Horizon Outlook',
+    decisions:  'Selection Ledger — Decisions',
+    risks:      'Risks & Mitigation',
+    pco:        'Change Order Log',
+  }[section] || section;
+
+  const projectName = D.project.name || 'Project';
+  const fullText    = `[${projectName}] ${text}`;
+
+  // Submit to Google Form via fetch (no-cors — silent submission)
+  if (D.commentFormBaseUrl && !D.commentFormBaseUrl.includes('YOUR_FORM_ID')) {
+    const params = new URLSearchParams();
+    params.set(D.commentFormSectionEntry, sectionLabel);
+    params.set(D.commentFormTextEntry,    fullText);
+
+    fetch(D.commentFormBaseUrl + '?' + params.toString(), {
+      method: 'POST',
+      mode: 'no-cors',
+    }).catch(() => {}); // silent — Google Forms doesn't return a response
+  }
+
+  // Also open mailto as fallback — ensures you always get notified
+  const subject = encodeURIComponent(`[Dashboard Comment] ${projectName} — ${sectionLabel}`);
+  const body    = encodeURIComponent(`Section: ${sectionLabel}\n\nComment:\n${text}\n\n— Submitted via Low Tide Ops Dashboard`);
+
+  // Show success state
+  if (ta)      { ta.style.display = 'none'; }
+  const submitBtn = ta ? ta.nextElementSibling : null;
+  if (submitBtn) { submitBtn.style.display = 'none'; }
+  if (confirm)   {
+    confirm.style.display = 'flex';
+    // Mark trigger button as having comments
+    const panel   = document.getElementById('comment-' + section);
+    if (panel) {
+      const trigger = panel.previousElementSibling;
+      if (trigger && trigger.classList.contains('comment-trigger')) {
+        trigger.classList.add('has-comments');
+        trigger.innerHTML = `<i data-lucide="check-circle" style="width:10px;height:10px;"></i> Submitted`;
+      }
+    }
+  }
+
+  // Open mailto after short delay so user sees the success state first
+  setTimeout(() => {
+    window.location.href = `mailto:michael@lowtideops.com?subject=${subject}&body=${body}`;
+  }, 800);
+
+  lucide.createIcons();
+}
+
+// ── SECTION NAV ──────────────────────────────
+function snavClick(sectionId, btn) {
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+  const navH = document.getElementById('section-nav').offsetHeight +
+               document.querySelector('header').offsetHeight +
+               document.getElementById('last-updated-bar').offsetHeight + 16;
+  const top = el.getBoundingClientRect().top + window.pageYOffset - navH;
+  window.scrollTo({ top, behavior: 'smooth' });
+  document.querySelectorAll('.snav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Update active section nav on scroll
+window.addEventListener('scroll', () => {
+  const sections = [
+    ['sec-financials', 0],
+    ['sec-horizon',    1],
+    ['sec-decisions',  2],
+    ['sec-risks',      3],
+    ['sec-pco',        4],
+    ['sec-questions',  5],
+  ];
+  const offset = 140;
+  let current = 0;
+  sections.forEach(([id, idx]) => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= offset) current = idx;
+  });
+  document.querySelectorAll('.snav-btn:not(#print-btn)').forEach((btn, i) => {
+    btn.classList.toggle('active', i === current);
+  });
+});
+
+// ── EXPAND ALL RISKS ─────────────────────────
+function expandAllRisks() {
+  document.querySelectorAll('.accordion-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.accordion-chevron').forEach(c => c.classList.add('open'));
+  lucide.createIcons();
+}
+function toggleAccordion(i) {
+  const body    = document.getElementById('body-' + i);
+  const chevron = document.getElementById('chevron-' + i);
+  const isOpen  = body.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.accordion-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.accordion-chevron').forEach(c => c.classList.remove('open'));
+
+  // Open this one if it was closed
+  if (!isOpen) {
+    body.classList.add('open');
+    chevron.classList.add('open');
+    lucide.createIcons();
+  }
+}
+
+</script>
+</body>
+</html>
