@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Low Tide Ops — Builder Experience Services</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy:   #0D2137;
+    --ocean:  #1C4F72;
+    --tide:   #2E86AB;
+    --sand:   #F4F0E8;
+    --fog:    #D6D3C8;
+    --stone:  #8C8C7A;
+    --ink:    #1A1F2E;
+    --white:  #FFFFFF;
+    --green:  #2A6049;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 5vw;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(13,33,55,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(46,134,171,0.15);
+    transition: background 0.3s;
+  }
+
+  .nav-logo img {
+    height: 36px;
+    width: auto;
+    /* Logo has dark bg — invert to show on dark nav */
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--stone);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--tide) !important;
+    border: 1px solid rgba(46,134,171,0.4);
+    padding: 8px 18px;
+    transition: all 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--tide) !important;
+    color: var(--white) !important;
+    border-color: var(--tide) !important;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 5vw 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle ocean texture */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 80%, rgba(28,79,114,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 20%, rgba(46,134,171,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* THE SIGNATURE: animated horizon line */
+  .horizon-line {
+    position: absolute;
+    bottom: 38%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(46,134,171,0.25);
+    transform-origin: left;
+    transform: scaleX(0);
+    animation: drawHorizon 1.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards;
+  }
+
+  @keyframes drawHorizon {
+    to { transform: scaleX(1); }
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--tide);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .hero-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5.5vw, 72px);
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    max-width: 14ch;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+
+  .hero-headline em {
+    font-style: italic;
+    color: var(--tide);
+  }
+
+  .hero-sub {
+    font-size: clamp(15px, 1.6vw, 18px);
+    color: var(--fog);
+    line-height: 1.7;
+    max-width: 52ch;
+    font-weight: 300;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.0s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.2s forwards;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    padding: 14px 32px;
+    background: var(--tide);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { background: #2475a0; transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-block;
+    padding: 14px 32px;
+    background: transparent;
+    color: var(--fog);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid rgba(214,211,200,0.25);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { color: var(--white); border-color: rgba(214,211,200,0.6); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 5vw;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fadeIn 1s ease 2s forwards;
+  }
+
+  .scroll-line {
+    width: 40px;
+    height: 1px;
+    background: rgba(46,134,171,0.5);
+  }
+
+  .scroll-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* ── PROOF STRIP ── */
+  .proof-strip {
+    background: var(--sand);
+    border-bottom: 1px solid var(--fog);
+    padding: 2rem 5vw;
+    display: flex;
+    justify-content: center;
+    gap: 4vw;
+    flex-wrap: wrap;
+  }
+
+  .proof-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .proof-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1;
+  }
+
+  .proof-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--stone);
+    text-align: center;
+    max-width: 18ch;
+    line-height: 1.5;
+  }
+
+  .proof-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--fog);
+    align-self: center;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 100px 5vw;
+    scroll-margin-top: 72px;
+  }
+
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--tide);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--tide);
+    opacity: 0.6;
+  }
+
+  .section-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 46px);
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    max-width: 20ch;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-headline em { font-style: italic; color: var(--tide); }
+
+  .section-body {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--stone);
+    max-width: 52ch;
+    font-weight: 300;
+  }
+
+  /* ── TWO EXPERIENCES ── */
+  .two-exp {
+    background: var(--white);
+  }
+
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 4rem;
+  }
+
+  .exp-card {
+    padding: 3rem;
+  }
+
+  .exp-card.dark {
+    background: var(--navy);
+  }
+
+  .exp-card.light {
+    background: var(--sand);
+  }
+
+  .exp-card-eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+
+  .exp-card.dark .exp-card-eyebrow { color: var(--tide); }
+  .exp-card.light .exp-card-eyebrow { color: var(--stone); }
+
+  .exp-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    line-height: 1.2;
+  }
+
+  .exp-card.dark .exp-card-title { color: var(--white); }
+  .exp-card.light .exp-card-title { color: var(--navy); }
+
+  .exp-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .exp-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  .exp-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .exp-card.dark .exp-dot { background: var(--tide); }
+  .exp-card.dark .exp-item { color: var(--fog); }
+  .exp-card.light .exp-dot { background: var(--navy); }
+  .exp-card.light .exp-item { color: var(--ink); }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    background: var(--navy);
+  }
+
+  .how-section .section-headline { color: var(--white); }
+  .how-section .eyebrow { color: var(--tide); }
+  .how-section .section-body { color: var(--fog); }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-top: 4rem;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: rgba(46,134,171,0.2);
+  }
+
+  .step {
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+
+  .step-num.builder { background: var(--ocean); color: var(--white); }
+  .step-num.system  { background: var(--tide);  color: var(--white); }
+  .step-num.owner   { background: var(--green); color: var(--white); }
+
+  .step-who {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .step-who.builder { color: var(--ocean); }
+  .step-who.system  { color: var(--tide); }
+  .step-who.owner   { color: var(--green); }
+
+  .step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--stone);
+    line-height: 1.6;
+  }
+
+  /* ── DELIVERABLES ── */
+  .deliver-section { background: var(--sand); }
+
+  .deliver-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 4rem;
+  }
+
+  .deliver-card {
+    background: var(--white);
+    padding: 2rem;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .deliver-card:hover { border-bottom-color: var(--tide); }
+
+  .deliver-icon {
+    font-size: 24px;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .deliver-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .deliver-desc {
+    font-size: 13px;
+    color: var(--stone);
+    line-height: 1.65;
+  }
+
+  /* ── TIERS ── */
+  .tiers-section { background: var(--white); }
+
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 4rem;
+  }
+
+  .tier {
+    padding: 2.5rem;
+    border: 1px solid var(--fog);
+    position: relative;
+    transition: box-shadow 0.2s;
+  }
+
+  .tier:hover { box-shadow: 0 8px 32px rgba(13,33,55,0.08); }
+
+  .tier.featured {
+    background: var(--navy);
+    border-color: var(--navy);
+  }
+
+  .tier-tag {
+    font-size: 8px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .tier:not(.featured) .tier-tag { color: var(--stone); }
+  .tier.featured .tier-tag { color: var(--tide); }
+
+  .tier-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .tier:not(.featured) .tier-price { color: var(--navy); }
+  .tier.featured .tier-price { color: var(--white); }
+
+  .tier-period {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+  }
+
+  .tier-divider {
+    height: 1px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tier:not(.featured) .tier-divider { background: var(--fog); }
+  .tier.featured .tier-divider { background: rgba(255,255,255,0.1); }
+
+  .tier-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .tier-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .tier-dash {
+    color: var(--tide);
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+
+  .tier:not(.featured) .tier-item { color: var(--ink); }
+  .tier.featured .tier-item { color: var(--fog); }
+
+  .tier-passthrough {
+    font-size: 11px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--green);
+    background: rgba(42,96,73,0.05);
+    color: var(--green);
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  /* ── FOUNDER ── */
+  .founder-section { background: var(--navy); }
+
+  .founder-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 5rem;
+    align-items: start;
+    margin-top: 4rem;
+  }
+
+  .founder-left {}
+
+  .founder-photo-wrap {
+    position: relative;
+  }
+
+  .founder-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    filter: grayscale(8%) contrast(1.04);
+  }
+
+  .founder-name-plate {
+    background: var(--tide);
+    padding: 1rem 1.25rem;
+  }
+
+  .founder-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 3px;
+  }
+
+  .founder-title-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+
+  .founder-right-content {}
+
+  .founder-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 3vw, 38px);
+    color: var(--white);
+    line-height: 1.25;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+
+  .founder-headline em {
+    font-style: italic;
+    color: var(--tide);
+  }
+
+  .founder-body {
+    font-size: 15px;
+    color: var(--fog);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .founder-creds {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .founder-cred {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--fog);
+  }
+
+  .cred-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--tide);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .founder-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 2rem;
+  }
+
+  .founder-stat-mini {
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(46,134,171,0.15);
+  }
+
+  .fsm-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .fsm-label {
+    font-size: 10px;
+    color: var(--stone);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── PILOT CTA ── */
+  .pilot-section {
+    background: var(--tide);
+    padding: 80px 5vw;
+    text-align: center;
+  }
+
+  .pilot-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 1.25rem;
+  }
+
+  .pilot-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.15;
+    max-width: 18ch;
+    margin: 0 auto 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .pilot-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.75);
+    max-width: 48ch;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .pilot-cta {
+    display: inline-block;
+    padding: 16px 40px;
+    background: var(--navy);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .pilot-cta:hover { background: #0a1a2e; transform: translateY(-1px); }
+
+  .pilot-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── CONTACT FORM ── */
+  .contact-form {
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    border-radius: 0;
+  }
+
+  .form-input::placeholder { color: rgba(255,255,255,0.35); }
+  .form-input:focus {
+    border-color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.12);
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .form-select option { background: var(--navy); color: var(--white); }
+
+  .form-submit {
+    padding: 16px 40px;
+    background: var(--white);
+    color: var(--navy);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    align-self: center;
+  }
+
+  .form-submit:hover { background: var(--fog); transform: translateY(-1px); }
+
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .form-success-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--white);
+    margin-bottom: 0.75rem;
+  }
+
+  .form-success-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .contact-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: rgba(255,255,255,0.25);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.5rem 0;
+  }
+
+  .contact-divider::before,
+  .contact-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+  }
+
+  .contact-direct {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-direct-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+  }
+
+  .contact-direct-label {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .contact-direct-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--white);
+    transition: color 0.2s;
+  }
+
+  .contact-direct-item:hover .contact-direct-value { color: var(--tide); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy);
+    border-top: 1px solid rgba(46,134,171,0.15);
+    padding: 2.5rem 5vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-logo img {
+    height: 28px;
+    filter: brightness(0) invert(1);
+    opacity: 0.6;
+  }
+
+  .footer-middle {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+
+  .footer-right {
+    font-size: 11px;
+    color: var(--stone);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .exp-grid,
+    .founder-grid,
+    .deliver-grid,
+    .tier-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .steps::before { display: none; }
+    .nav-links { display: none; }
+    .proof-strip { gap: 2rem; }
+    .proof-divider { display: none; }
+    .founder-photo { max-width: 280px; }
+    .founder-stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><img src="low_tide_ops_logo.png" alt="Low Tide Ops"/></a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#what">Our Products</a></li>
+    <li><a href="#closeout">Closeout</a></li>
+    <li><a href="#services">Pricing</a></li>
+    <li><a href="#founder">About</a></li>
+    <li><a href="#pilot" class="nav-cta">Start a Pilot</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="horizon-line"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Michael Brown · Builder Experience Services · San Clemente, CA</div>
+    <h1 class="hero-headline">
+      Builder-retained.<br>
+      <em>Institutionally operated.</em>
+    </h1>
+    <p class="hero-sub">
+      Low Tide Ops gives custom residential builders an institutional-grade project controls and owner reporting system — without adding internal staff. Builder-retained. Owner-visible. Process-neutral.
+    </p>
+    <div class="hero-actions">
+      <a href="#pilot" class="btn-primary">Start a 90-Day Pilot</a>
+      <a href="#how" class="btn-ghost">See How It Works</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span class="scroll-label">Scroll</span>
+  </div>
+</section>
+
+<!-- PROOF STRIP -->
+<div class="proof-strip">
+  <div class="proof-item">
+    <div class="proof-number">B2B</div>
+    <div class="proof-label">Builder-retained — the builder is the client</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">3</div>
+    <div class="proof-label">Core products: Dashboard, Controls Log, Draw Package</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">$0</div>
+    <div class="proof-label">Net cost to builder — structured as General Conditions</div>
+  </div>
+  <div class="proof-divider"></div>
+  <div class="proof-item">
+    <div class="proof-number">90</div>
+    <div class="proof-label">Day pilot — no long-term commitment required</div>
+  </div>
+</div>
+
+<!-- THREE PRODUCTS -->
+<section class="two-exp" id="what">
+  <div class="section-inner">
+    <div class="eyebrow">One Service. Three Products.</div>
+    <h2 class="section-headline">Each serves a different stakeholder.<br><em>Together</em> they make the builder look institutional.</h2>
+    <p class="section-body">Low Tide Ops is contracted by the builder. The builder is the client. The system protects their margin, documents their work, and delivers a premium experience to everyone around the project.</p>
+    <div class="exp-grid">
+      <div class="exp-card dark">
+        <div class="exp-card-eyebrow">Product 01 — Owner-Facing</div>
+        <div class="exp-card-title">Owner<br>Dashboard</div>
+        <div class="exp-items">
+          <div class="exp-item"><div class="exp-dot"></div>Current phase & weekly progress</div>
+          <div class="exp-item"><div class="exp-dot"></div>Owner decision log with deadlines</div>
+          <div class="exp-item"><div class="exp-dot"></div>Approved & pending change summary</div>
+          <div class="exp-item"><div class="exp-dot"></div>Budget & allowance status</div>
+          <div class="exp-item"><div class="exp-dot"></div>Milestone photo archive</div>
+        </div>
+      </div>
+      <div class="exp-card light">
+        <div class="exp-card-eyebrow">Product 02 — Builder Protection</div>
+        <div class="exp-card-title">Financial<br>Controls Log</div>
+        <div class="exp-items">
+          <div class="exp-item"><div class="exp-dot"></div>Base contract & SOV tracking</div>
+          <div class="exp-item"><div class="exp-dot"></div>Approved change orders</div>
+          <div class="exp-item"><div class="exp-dot"></div>Pending exposures & ACAC</div>
+          <div class="exp-item"><div class="exp-dot"></div>Allowance movement tracker</div>
+          <div class="exp-item"><div class="exp-dot"></div>Contingency burn tracker</div>
+        </div>
+      </div>
+    </div>
+    <!-- Third product — full width -->
+    <div style="margin-top:2px;padding:2.5rem;background:var(--navy);">
+      <div class="exp-card-eyebrow" style="color:var(--tide);margin-bottom:0.75rem;">Product 03 — Lender & Archive</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;">
+        <div>
+          <div class="exp-card-title" style="color:var(--white);font-family:'Playfair Display',serif;font-size:22px;font-weight:600;margin-bottom:1rem;">Draw &amp; Closeout Package</div>
+          <p style="font-size:15px;color:var(--fog);line-height:1.7;font-weight:300;">The institutional credibility layer. Organizes draw documentation, lien waiver tracking, and the final project archive — so the builder looks like a real firm to lenders, architects, and future clients.</p>
+        </div>
+        <div class="exp-items" style="margin-top:0.5rem;">
+          <div class="exp-item" style="color:var(--fog);"><div class="exp-dot" style="background:var(--tide);"></div>Monthly draw package checklist</div>
+          <div class="exp-item" style="color:var(--fog);"><div class="exp-dot" style="background:var(--tide);"></div>SOV &amp; invoice organization</div>
+          <div class="exp-item" style="color:var(--fog);"><div class="exp-dot" style="background:var(--tide);"></div>Lien waiver status tracking</div>
+          <div class="exp-item" style="color:var(--fog);"><div class="exp-dot" style="background:var(--tide);"></div>Progress photo backup</div>
+          <div class="exp-item" style="color:var(--fog);"><div class="exp-dot" style="background:var(--tide);"></div>Final project biography &amp; closeout archive</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--stone);margin-top:1.5rem;font-style:italic;">Low Tide Ops does not approve payments, certify work, manage subcontractors, or replace the builder's project manager. The construction agreement remains the governing document for all costs, approvals, and responsibilities.</p>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <div class="eyebrow" style="color:var(--tide);">The Workflow</div>
+    <h2 class="section-headline" style="color:var(--white);">Six steps.<br><em>One repeatable system.</em></h2>
+    <p class="section-body">The builder submits a structured weekly intake form. Low Tide Ops processes, reviews, and prepares the dashboard. The builder approves before the owner sees anything. Nothing is published without sign-off.</p>
+    <div class="steps" style="grid-template-columns:repeat(6,1fr);">
+      <div class="step">
+        <div class="step-num builder">1</div>
+        <div class="step-who builder">Builder</div>
+        <div class="step-title">Structured Weekly Intake</div>
+        <div class="step-desc">10-question form. Progress, changes, exposures, decisions, draws, photos.</div>
+      </div>
+      <div class="step">
+        <div class="step-num system">2</div>
+        <div class="step-who system">System</div>
+        <div class="step-title">Data Ingested</div>
+        <div class="step-desc">AI workflow pulls from existing channels. Buildertrend, email, shared drives.</div>
+      </div>
+      <div class="step">
+        <div class="step-num system">3</div>
+        <div class="step-who system">Low Tide</div>
+        <div class="step-title">Internal Review</div>
+        <div class="step-desc">Controls log updated. Financial data reconciled. Dashboard content prepared.</div>
+      </div>
+      <div class="step">
+        <div class="step-num builder">4</div>
+        <div class="step-who builder">Builder</div>
+        <div class="step-title">Builder Approves</div>
+        <div class="step-desc">Builder reviews draft before publication. Nothing goes to owner without sign-off.</div>
+      </div>
+      <div class="step">
+        <div class="step-num system">5</div>
+        <div class="step-who system">System</div>
+        <div class="step-title">Dashboard Published</div>
+        <div class="step-desc">Owner portal updated. Current, calm, confidence-building.</div>
+      </div>
+      <div class="step">
+        <div class="step-num owner">6</div>
+        <div class="step-who owner">Result</div>
+        <div class="step-title">Builder Protected</div>
+        <div class="step-desc">Clean record, calm owner, documented changes, draw-ready package.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLES -->
+<section class="deliver-section">
+  <div class="section-inner">
+    <div class="eyebrow">The Dashboard</div>
+    <h2 class="section-headline">What the owner sees.<br><em>After builder approval.</em></h2>
+    <p class="section-body">A private, branded portal updated weekly. Calm, architectural, and formatted for the owner — not the accountant. Published only after the builder has reviewed and signed off on the content.</p>
+    <div class="deliver-grid">
+      <div class="deliver-card">
+        <span class="deliver-icon">📅</span>
+        <div class="deliver-title">Schedule Look-Ahead</div>
+        <div class="deliver-desc">30, 60, and 90-day milestone preview. Owners see what's coming before they have to ask.</div>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-icon">✓</span>
+        <div class="deliver-title">Owner Decision Log</div>
+        <div class="deliver-desc">Every pending decision organized by deadline with context and financial impact. Zero guesswork.</div>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-icon">💰</span>
+        <div class="deliver-title">Budget & Allowance Status</div>
+        <div class="deliver-desc">Capital deployed, allowance movement, and contingency status — formatted for the owner.</div>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-icon">📋</span>
+        <div class="deliver-title">Change Order Summary</div>
+        <div class="deliver-desc">Approved changes and pending exposures clearly separated. No financial surprises at closeout.</div>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-icon">🛡</span>
+        <div class="deliver-title">Risk & Mitigation Register</div>
+        <div class="deliver-desc">Active risks with mitigation strategy. Confidence through clarity, not silence.</div>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-icon">📸</span>
+        <div class="deliver-title">Milestone Photo Archive</div>
+        <div class="deliver-desc">Documented visual record of the build. Horizon tier includes monthly professional milestone photography.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSEOUT -->
+<section style="background:var(--navy);padding:5rem 0;" id="closeout">
+  <div class="section-inner">
+    <div class="eyebrow" style="color:var(--tide);">The Closeout</div>
+    <h2 class="section-headline" style="color:var(--white);">The moment that<br><em>generates the next client.</em></h2>
+    <p class="section-body" style="color:var(--fog);">Every Low Tide Ops project closes with a premium deliverable that turns your homeowner into your most powerful referral source. The project biography is handed to the homeowner at key handover — a hardcover record of everything they built together.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:2.5rem 0;">
+
+      <!-- Digital Archive -->
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(46,134,171,0.2);padding:2rem;">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--tide);font-weight:600;margin-bottom:0.75rem;">Included All Tiers</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--white);font-weight:600;margin-bottom:0.75rem;">Digital Closeout Archive</div>
+        <p style="font-size:13px;color:var(--fog);line-height:1.7;margin-bottom:1.25rem;">A permanent digital record delivered at project completion. Everything organized, archived, and accessible.</p>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Final approved change order log</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Complete budget ledger — every transaction</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Full photo archive organized by phase</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Key decisions record</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Warranty &amp; manual folder</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);display:flex;gap:8px;"><span style="color:var(--tide);flex-shrink:0;">—</span>Draw documentation record</div>
+        </div>
+      </div>
+
+      <!-- Project Biography -->
+      <div style="background:var(--tide);padding:2rem;">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--navy);font-weight:600;margin-bottom:0.75rem;">Premium Closeout Add-On</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--navy);font-weight:600;margin-bottom:0.75rem;">Project Biography Book</div>
+        <p style="font-size:13px;color:var(--navy);line-height:1.7;margin-bottom:1.25rem;">A premium hardcover coffee table book. The complete visual story of the build — from groundbreaking to key handover. Your name on the cover. On their coffee table for years.</p>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem;">
+          <div style="font-size:11px;color:var(--navy);display:flex;gap:8px;"><span style="flex-shrink:0;font-weight:600;">—</span>40–60 pages · premium hardcover format</div>
+          <div style="font-size:11px;color:var(--navy);display:flex;gap:8px;"><span style="flex-shrink:0;font-weight:600;">—</span>Professional photography at each phase</div>
+          <div style="font-size:11px;color:var(--navy);display:flex;gap:8px;"><span style="flex-shrink:0;font-weight:600;">—</span>Phase narrative in plain language</div>
+          <div style="font-size:11px;color:var(--navy);display:flex;gap:8px;"><span style="flex-shrink:0;font-weight:600;">—</span>Final home specs &amp; selections</div>
+          <div style="font-size:11px;color:var(--navy);display:flex;gap:8px;"><span style="flex-shrink:0;font-weight:600;">—</span>Builder story &amp; homeowner vision</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div style="background:rgba(13,33,55,0.15);padding:0.75rem;">
+            <div style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--navy);font-weight:600;margin-bottom:4px;">Standard</div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--navy);">$2,500</div>
+            <div style="font-size:10px;color:var(--navy);margin-top:2px;">1 copy · homeowner</div>
+          </div>
+          <div style="background:rgba(13,33,55,0.15);padding:0.75rem;">
+            <div style="font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--navy);font-weight:600;margin-bottom:4px;">Premium</div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--navy);">$4,500</div>
+            <div style="font-size:10px;color:var(--navy);margin-top:2px;">3 copies · drone photos</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Builder Marketing Asset Package -->
+    <div style="border:1px solid rgba(46,134,171,0.25);padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tide);font-weight:600;margin-bottom:4px;">Builder Add-On · $750</div>
+        <div style="font-size:15px;color:var(--white);font-weight:500;">Builder Marketing Asset Package</div>
+        <div style="font-size:12px;color:var(--stone);margin-top:3px;">Curated project photography formatted for your website, portfolio, and social media. Delivered at closeout alongside the biography book.</div>
+      </div>
+      <div style="font-size:11px;color:var(--tide);font-style:italic;max-width:220px;text-align:right;line-height:1.5;">The photos were taken anyway. This turns them into your next marketing campaign.</div>
+    </div>
+
+    <p style="font-size:11px;color:var(--stone);font-style:italic;margin-top:1.5rem;text-align:center;">The project biography book is the moment your homeowner becomes your next referral. Every visitor to their new home picks it up. Your name is on the cover.</p>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="tiers-section" id="services">
+  <div class="section-inner">
+    <div class="eyebrow">Services & Pricing</div>
+    <h2 class="section-headline">Two tiers.<br><em>Simple pricing.</em></h2>
+    <p class="section-body">A one-time setup fee per project, then a monthly service fee for the duration of the build. Both tiers include the monthly progress report to builder and homeowner. Fees are structured as a General Conditions line item — builder net cost zero.</p>
+
+    <!-- Setup fee strip -->
+    <div style="border:1px solid var(--fog);padding:1.5rem 2rem;margin-bottom:2rem;background:var(--navy);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--tide);font-weight:600;margin-bottom:6px;">One-Time Project Setup Fee</div>
+        <div style="font-size:15px;color:var(--white);font-weight:500;">$5,000 clean start &nbsp;·&nbsp; $7,500 complex &nbsp;·&nbsp; $12,500–$15,000 mid-project reset</div>
+        <div style="font-size:12px;color:var(--stone);margin-top:4px;">Required on every project before monthly reporting begins.</div>
+      </div>
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tide);border:1px solid rgba(46,134,171,0.3);padding:6px 14px;">Per Project</div>
+    </div>
+
+    <div class="tier-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="tier">
+        <div class="tier-tag">Compass</div>
+        <div class="tier-price">$2,500</div>
+        <div class="tier-period">/ month · per project</div>
+        <div class="tier-divider"></div>
+        <div class="tier-items">
+          <div class="tier-item"><span class="tier-dash">—</span>Weekly owner dashboard</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Financial controls log</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Owner decision log</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Change order tracking</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Monthly financial summary</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Draw package checklist</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Questions &amp; comments</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Monthly progress report</div>
+        </div>
+        <div class="tier-passthrough">Builder net cost: $0 · GC pass-through</div>
+      </div>
+
+      <div class="tier featured">
+        <div class="tier-tag">Horizon</div>
+        <div class="tier-price">$3,500</div>
+        <div class="tier-period">/ month · per project</div>
+        <div class="tier-divider"></div>
+        <div class="tier-items">
+          <div class="tier-item"><span class="tier-dash">—</span>Everything in Compass</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Monthly milestone photography</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Lender draw package synthesis</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Allowance &amp; contingency tracker</div>
+          <div class="tier-item"><span class="tier-dash">—</span>ACAC summary</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Digital closeout archive</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Project Biography at closeout</div>
+          <div class="tier-item"><span class="tier-dash">—</span>Monthly progress report</div>
+        </div>
+        <div class="tier-passthrough" style="background:rgba(42,96,73,0.15);border-left-color:#4a9070;">Builder net cost: $0 · GC pass-through</div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:1rem 1.5rem;border:1px solid var(--fog);background:var(--sand);font-size:12px;color:var(--stone);">
+      <strong style="color:var(--navy);">Horizon Closeout · Project Biography Book:</strong> $5,000 standard (1 copy) · $7,500 premium (3 copies + drone) · Billed at project completion.
+    </div>
+
+    <div style="margin-top:0.75rem;padding:1rem 1.5rem;border:1px solid var(--fog);background:var(--sand);font-size:12px;color:var(--stone);">
+      <strong style="color:var(--navy);">90-Day Pilot:</strong> $5,000 setup + $2,500/month Compass · 90-day minimum · Total $12,500 · No long-term commitment.
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="founder-section" id="founder">
+  <div class="section-inner">
+    <div class="eyebrow" style="color:var(--tide);">The Founder</div>
+    <div class="founder-grid">
+
+      <!-- Photo + name -->
+      <div class="founder-left">
+        <div class="founder-photo-wrap">
+          <img src="michael_brown.png" alt="Michael Brown — Founder, Low Tide Ops" class="founder-photo"/>
+          <div class="founder-name-plate">
+            <div class="founder-name">Michael Brown</div>
+            <div class="founder-title-label">Founder, Low Tide Ops · San Clemente, CA</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story + credentials -->
+      <div class="founder-right-content">
+        <h2 class="founder-headline">
+          Institutional experience.<br>
+          <em>Builder-side application.</em>
+        </h2>
+        <p class="founder-body">
+          I've spent my career on the owner's side of large commercial development — managing schedules, stakeholder reporting, and the kind of institutional project controls that most residential builders never have access to. I understand what it takes to document scope changes, protect margin, and keep sophisticated clients informed. When I watched a luxury custom build from the inside, I saw how much of that infrastructure simply didn't exist on the residential side.
+        </p>
+        <p class="founder-body" style="margin-top:1rem;">
+          Low Tide Ops brings that institutional operating discipline to boutique custom builders — without the overhead of a corporate firm.
+        </p>
+        <div class="founder-creds" style="margin-top:2rem;">
+          <div class="founder-cred"><div class="cred-dot"></div>Development Manager · $200M+ institutional portfolio oversight</div>
+          <div class="founder-cred"><div class="cred-dot"></div>USC Master of Science — Project Management</div>
+          <div class="founder-cred"><div class="cred-dot"></div>USC Bachelor of Science — Real Estate Development</div>
+          <div class="founder-cred"><div class="cred-dot"></div>Owner-side project controls & stakeholder management</div>
+          <div class="founder-cred"><div class="cred-dot"></div>Raising a family in San Clemente, CA</div>
+        </div>
+        <div class="founder-stats-row">
+          <div class="founder-stat-mini">
+            <div class="fsm-num">$200M+</div>
+            <div class="fsm-label">Portfolio Oversight</div>
+          </div>
+          <div class="founder-stat-mini">
+            <div class="fsm-num">USC</div>
+            <div class="fsm-label">MS Project Mgmt</div>
+          </div>
+          <div class="founder-stat-mini">
+            <div class="fsm-num">8+</div>
+            <div class="fsm-label">Years Experience</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PILOT CTA -->
+<section class="pilot-section" id="pilot">
+  <div class="pilot-eyebrow">The Founding Builder Program</div>
+  <h2 class="pilot-headline">Start with a 90-day pilot. No long-term commitment.</h2>
+  <p class="pilot-sub">$3,500 setup fee. $2,500/month. 90-day minimum. Full project controls baseline, weekly reporting, change-order log, decision log, monthly financial summary, and one draw package support cycle. Experience the system before committing to an ongoing engagement.</p>
+
+  <!-- Contact Form -->
+  <div class="contact-form" id="contact-form">
+    <div class="form-row">
+      <input type="text" class="form-input" id="form-name" placeholder="Your name" autocomplete="name"/>
+      <input type="text" class="form-input" id="form-company" placeholder="Company / Builder name"/>
+    </div>
+    <div class="form-row">
+      <input type="email" class="form-input" id="form-email" placeholder="Email address" autocomplete="email"/>
+      <input type="tel" class="form-input" id="form-phone" placeholder="Phone number" autocomplete="tel"/>
+    </div>
+    <select class="form-select" id="form-interest">
+      <option value="" disabled selected>How did you hear about Low Tide Ops?</option>
+      <option>Referral from another builder</option>
+      <option>Homeowner recommendation</option>
+      <option>Online search</option>
+      <option>Direct outreach from Michael</option>
+      <option>Trade association or event</option>
+      <option>Other</option>
+    </select>
+    <textarea class="form-input" id="form-message" placeholder="Tell me about your current projects and what you're looking for — or just say hello." style="min-height:100px;resize:vertical;line-height:1.6;"></textarea>
+    <button class="form-submit" onclick="submitForm()">Request a Conversation</button>
+    <div class="pilot-note" id="form-note">All inquiries responded to within one business day.</div>
+  </div>
+
+  <!-- Success State -->
+  <div class="form-success" id="form-success">
+    <div class="form-success-headline">Thank you — I'll be in touch shortly.</div>
+    <div class="form-success-sub">Expect a response within one business day. In the meantime, feel free to call or text directly.</div>
+  </div>
+
+  <!-- Divider -->
+  <div class="contact-divider" style="max-width:560px;margin:0 auto 1.25rem;">or reach out directly</div>
+
+  <!-- Direct Contact -->
+  <div class="contact-direct">
+    <a href="tel:9516397689" class="contact-direct-item">
+      <span class="contact-direct-label">Call or Text</span>
+      <span class="contact-direct-value">951.639.7689</span>
+    </a>
+    <a href="mailto:michael@lowtideops.com" class="contact-direct-item">
+      <span class="contact-direct-label">Email</span>
+      <span class="contact-direct-value">michael@lowtideops.com</span>
+    </a>
+    <div class="contact-direct-item">
+      <span class="contact-direct-label">Location</span>
+      <span class="contact-direct-value" style="cursor:default;">San Clemente, CA</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <img src="low_tide_ops_logo.png" alt="Low Tide Ops"/>
+  </div>
+  <div class="footer-middle">
+    Builder Experience Services · San Clemente, CA<br>
+    Serving South Orange County & San Diego luxury residential builders
+  </div>
+  <div class="footer-right">
+    Michael Brown · Founder<br>
+    michael@lowtideops.com · 951.639.7689
+  </div>
+</footer>
+
+<script>
+  // Contact form submission
+  function submitForm() {
+    var name    = document.getElementById('form-name').value.trim();
+    var email   = document.getElementById('form-email').value.trim();
+    var company = document.getElementById('form-company').value.trim();
+    var phone   = document.getElementById('form-phone').value.trim();
+    var message = document.getElementById('form-message').value.trim();
+
+    if (!name || !email) {
+      document.getElementById('form-note').textContent = 'Please enter your name and email to continue.';
+      document.getElementById('form-note').style.color = '#CC4455';
+      return;
+    }
+
+    // Build mailto link with form data
+    var subject = encodeURIComponent('Low Tide Ops — Pilot Inquiry from ' + name + (company ? ' · ' + company : ''));
+    var body = encodeURIComponent(
+      'Name: ' + name + '\n' +
+      'Company: ' + (company || 'Not provided') + '\n' +
+      'Email: ' + email + '\n' +
+      'Phone: ' + (phone || 'Not provided') + '\n\n' +
+      'Message:\n' + (message || 'No message provided.')
+    );
+
+    window.location.href = 'mailto:michael@lowtideops.com?subject=' + subject + '&body=' + body;
+
+    // Show success state after short delay
+    setTimeout(function() {
+      document.getElementById('contact-form').style.display = 'none';
+      document.getElementById('form-success').style.display = 'block';
+    }, 800);
+  }
+
+  // Allow Enter key on inputs
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      var form = document.getElementById('contact-form');
+      if (form && form.contains(e.target)) submitForm();
+    }
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      var target = this.getAttribute('href');
+      if (target === '#') return;
+      var el = document.querySelector(target);
+      if (!el) return;
+      e.preventDefault();
+      var navHeight = document.querySelector('nav').offsetHeight;
+      var top = el.getBoundingClientRect().top + window.pageYOffset - navHeight - 16;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    });
+  });
+
+  // Highlight active nav link on scroll
+  var sections = document.querySelectorAll('section[id], div[id]');
+  var navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', function() {
+    var scrollPos = window.pageYOffset + 100;
+    sections.forEach(function(section) {
+      if (section.offsetTop <= scrollPos && section.offsetTop + section.offsetHeight > scrollPos) {
+        navLinks.forEach(function(link) {
+          link.style.color = '';
+          if (link.getAttribute('href') === '#' + section.id) {
+            link.style.color = 'var(--white)';
+          }
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>
