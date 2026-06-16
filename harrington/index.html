@@ -1502,11 +1502,11 @@ const PROJECT_DATA = {
   //   Field 1: "Section" (short answer, pre-filled via URL param)
   //   Field 2: "Comment" (paragraph)
   // Get the form's entry IDs and replace entry.XXXXXXXX below
-  commentFormBaseUrl: "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",
-  commentFormSectionEntry: "entry.1111111111",  // replace with your section field entry ID
-  commentFormTextEntry:    "entry.2222222222",  // replace with your comment field entry ID
+  commentFormBaseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf9kAl2ILVGWO6vq4gv39o7BdsPWh0tbpxC9zqyw1raa_o5Zw/formResponse",
+  commentFormSectionEntry: "entry.327168658",   // Section field
+  commentFormTextEntry:    "entry.1151286004",  // Comment field
   // ownerQuestions: populated weekly from submitted questions
-  feedbackUrl: "https://forms.google.com/your-form-link-here",
+  feedbackUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeMNgZfxWHw21eecUljKHQdDKjf7uOwdx8qutZsircJDWAg0g/viewform",
   ownerQuestions: [
     {
       question: "I noticed the schedule shows framing completion on July 3 — is that still realistic given the inspection delay?",
@@ -2389,21 +2389,15 @@ function submitComment(section) {
   const projectName = D.project.name || 'Project';
   const fullText    = `[${projectName}] ${text}`;
 
-  // Submit to Google Form via fetch (no-cors — silent submission)
-  if (D.commentFormBaseUrl && !D.commentFormBaseUrl.includes('YOUR_FORM_ID')) {
-    const params = new URLSearchParams();
-    params.set(D.commentFormSectionEntry, sectionLabel);
-    params.set(D.commentFormTextEntry,    fullText);
+  // Submit to Google Form (silent background POST — owner stays on dashboard)
+  const params = new URLSearchParams();
+  params.set(D.commentFormSectionEntry, sectionLabel);
+  params.set(D.commentFormTextEntry,    fullText);
 
-    fetch(D.commentFormBaseUrl + '?' + params.toString(), {
-      method: 'POST',
-      mode: 'no-cors',
-    }).catch(() => {}); // silent — Google Forms doesn't return a response
-  }
-
-  // Also open mailto as fallback — ensures you always get notified
-  const subject = encodeURIComponent(`[Dashboard Comment] ${projectName} — ${sectionLabel}`);
-  const body    = encodeURIComponent(`Section: ${sectionLabel}\n\nComment:\n${text}\n\n— Submitted via Low Tide Ops Dashboard`);
+  fetch(D.commentFormBaseUrl + '?' + params.toString(), {
+    method: 'POST',
+    mode: 'no-cors',
+  }).catch(() => {});
 
   // Show success state
   if (ta)      { ta.style.display = 'none'; }
@@ -2421,11 +2415,6 @@ function submitComment(section) {
       }
     }
   }
-
-  // Open mailto after short delay so user sees the success state first
-  setTimeout(() => {
-    window.location.href = `mailto:michael@lowtideops.com?subject=${subject}&body=${body}`;
-  }, 800);
 
   lucide.createIcons();
 }
