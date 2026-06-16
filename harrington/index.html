@@ -72,7 +72,6 @@
     }
 
     /* Mobile header — hide desktop-only elements immediately */
-    html.is-mobile #header-weather,
     html.is-mobile #header-date { display: none !important; }
 
     /* Mobile hero — stack from first paint */
@@ -691,8 +690,7 @@
       #gate-title { font-size: 18px; }
       #gate-input { font-size: 16px; } /* prevents iOS zoom */
 
-      /* Header — hide weather detail, compress */
-      #header-weather { display: none; }
+      /* Header — hide date, compress */
       #header-date    { display: none; }
       .max-w-7xl { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
       header .max-w-7xl { padding-left: 1rem !important; padding-right: 1rem !important; }
@@ -1899,12 +1897,41 @@ function renderDashboard() {
   document.getElementById('last-updated-next').textContent =
     `Next update: ${D.nextUpdate}`;
 
-  // Weather
-  document.getElementById('header-weather').innerHTML = `
-    <span class="font-mono text-lg text-white font-medium">${P.weather.temp}</span>
-    <span class="text-[8px] tracking-wide text-taupe uppercase">${P.weather.condition}</span>
-    <span class="text-[8px] text-taupe/60 border-l border-white/10 pl-3 ml-1">${P.weather.location}</span>
-  `;
+  // Weather — live from Open-Meteo (no API key required)
+  // San Clemente, CA: lat 33.4269, lon -117.6119
+  (async function loadWeather() {
+    const el = document.getElementById('header-weather');
+    try {
+      const res  = await fetch('https://api.open-meteo.com/v1/forecast?latitude=33.4269&longitude=-117.6119&current=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles');
+      const data = await res.json();
+      const temp = Math.round(data.current.temperature_2m) + '°';
+      const code = data.current.weathercode;
+      const condition = (function(c) {
+        if (c === 0)              return 'Clear';
+        if (c <= 2)               return 'Partly Cloudy';
+        if (c === 3)              return 'Overcast';
+        if (c <= 49)              return 'Foggy';
+        if (c <= 59)              return 'Drizzle';
+        if (c <= 69)              return 'Rain';
+        if (c <= 79)              return 'Snow';
+        if (c <= 82)              return 'Rain Showers';
+        if (c <= 99)              return 'Thunderstorm';
+        return 'Unknown';
+      })(code);
+      el.innerHTML = `
+        <span class="font-mono text-lg text-white font-medium">${temp}</span>
+        <span class="text-[8px] tracking-wide text-taupe uppercase">${condition}</span>
+        <span class="text-[8px] text-taupe/60 border-l border-white/10 pl-3 ml-1">San Clemente</span>
+      `;
+    } catch(e) {
+      // Fallback to static value if fetch fails
+      el.innerHTML = `
+        <span class="font-mono text-lg text-white font-medium">${P.weather.temp}</span>
+        <span class="text-[8px] tracking-wide text-taupe uppercase">${P.weather.condition}</span>
+        <span class="text-[8px] text-taupe/60 border-l border-white/10 pl-3 ml-1">${P.weather.location}</span>
+      `;
+    }
+  })();
 
   // Hero
   document.getElementById('hero-label').textContent = 'Prepared by Low Tide Ops · Confidential Owner Dashboard';
