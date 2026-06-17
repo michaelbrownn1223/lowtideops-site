@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Low Tide Ops — Draw Package Compiler</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:#FDFBF7;color:#1A1F2E;font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;}
+
+.site-header{background:#1A1F2E;padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.logo-mark{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:#2E86AB;}
+.logo-line{width:28px;height:1px;background:rgba(46,134,171,0.45);}
+.header-product{font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:#2E86AB;font-weight:600;}
+.header-sub{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#6B7280;margin-top:2px;}
+.header-right{display:flex;align-items:center;gap:1.5rem;}
+.header-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:#6B7280;}
+
+.nav-strip{background:#fff;border-bottom:1px solid rgba(214,211,203,0.6);padding:0 2.5rem;display:flex;position:sticky;top:56px;z-index:90;}
+.nav-tab{padding:14px 0;margin-right:2rem;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#9CA3AF;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;border-bottom:2px solid transparent;}
+.nav-tab:hover{color:#1A1F2E;}
+.nav-tab.active{color:#2E86AB;border-bottom-color:#2E86AB;}
+
+main{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 4rem;}
+
+.section-eyebrow{font-size:9px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:#6B7280;display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+.section-eyebrow::before{content:'';display:block;width:20px;height:1px;background:#2E86AB;opacity:0.6;flex-shrink:0;}
+
+.config-card{background:#fff;border:1px solid rgba(214,211,203,0.7);padding:1.5rem 2rem;margin-bottom:2rem;}
+.cfg-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.25rem;}
+.cfg-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;}
+.field-block{display:flex;flex-direction:column;gap:5px;}
+.field-label{font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#9CA3AF;font-weight:600;}
+.field-input{padding:9px 12px;background:#FDFBF7;border:1px solid rgba(214,211,203,0.8);color:#1A1F2E;font-family:'Inter',sans-serif;font-size:12px;outline:none;transition:border-color 0.2s;width:100%;}
+.field-input:focus{border-color:#2E86AB;}
+.field-input.mono{font-family:'JetBrains Mono',monospace;}
+.btn-primary{padding:10px 24px;background:#1A1F2E;color:#fff;border:none;font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:background 0.15s;}
+.btn-primary:hover{background:#2E86AB;}
+.btn-secondary{padding:10px 20px;background:transparent;color:#6B7280;border:1px solid rgba(214,211,203,0.8);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.btn-secondary:hover{color:#1A1F2E;border-color:#9CA3AF;}
+.btn-row{display:flex;gap:10px;align-items:center;}
+
+.status-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:rgba(46,134,171,0.07);border:1px solid rgba(46,134,171,0.2);margin-bottom:1.5rem;font-size:11px;color:#2E86AB;}
+.status-bar.on{display:flex;}
+.spinner{width:13px;height:13px;border:2px solid rgba(46,134,171,0.2);border-top-color:#2E86AB;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.toast{padding:12px 16px;margin-bottom:1.5rem;font-size:11px;display:none;align-items:center;gap:10px;border-left:3px solid;}
+.toast.ok{display:flex;background:rgba(42,96,73,0.08);color:#2A6049;border-color:#2A6049;}
+.toast.err{display:flex;background:rgba(139,38,53,0.07);color:#8B2635;border-color:#8B2635;}
+
+.horizon-mark{position:relative;display:flex;align-items:center;justify-content:center;padding:20px 0;margin:1rem 0;}
+.horizon-mark::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(26,31,46,0.1);}
+.horizon-dot{width:7px;height:7px;border-radius:50%;background:#2E86AB;position:relative;z-index:1;box-shadow:0 0 0 3px #FDFBF7;}
+
+/* COVER */
+.cover-card{background:#1A1F2E;padding:2.5rem;margin-bottom:2rem;}
+.cover-eyebrow{font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#2E86AB;font-weight:600;margin-bottom:10px;}
+.cover-title{font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:400;margin-bottom:4px;}
+.cover-sub{font-size:11px;color:#6B7280;letter-spacing:0.06em;margin-bottom:1.75rem;}
+.cover-divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:1.5rem 0;}
+.draw-amt{font-family:'JetBrains Mono',monospace;font-size:36px;color:#2E86AB;margin-bottom:4px;}
+.draw-amt-label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#6B7280;}
+.cover-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem 2rem;margin-top:1.5rem;}
+.cf-label{font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:#6B7280;margin-bottom:4px;font-weight:600;}
+.cf-value{font-size:12px;color:#fff;}
+.cf-value.mono{font-family:'JetBrains Mono',monospace;}
+
+/* CHECKLIST */
+.check-card{background:#fff;border:1px solid rgba(214,211,203,0.7);margin-bottom:2rem;}
+.check-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid rgba(214,211,203,0.5);display:flex;align-items:center;justify-content:space-between;}
+.check-card-title{font-size:11px;font-weight:600;color:#1A1F2E;}
+.check-progress{font-family:'JetBrains Mono',monospace;font-size:10px;color:#9CA3AF;}
+.progress-track{height:3px;background:#F0EDE6;border:1px solid #D6D3CB;margin:0 1.5rem;}
+.progress-fill{height:100%;background:#2E86AB;transition:width 0.4s;}
+.check-body{padding:0 1.5rem;}
+.check-row{display:flex;align-items:flex-start;gap:12px;padding:0.875rem 0;border-bottom:1px solid rgba(214,211,203,0.4);}
+.check-row:last-child{border-bottom:none;}
+.check-box{width:16px;height:16px;border:1.5px solid #D6D3CB;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.15s;}
+.check-box.on{background:#2A6049;border-color:#2A6049;color:#fff;}
+.check-text{flex:1;}
+.check-title{font-size:12px;font-weight:500;color:#1A1F2E;margin-bottom:2px;}
+.check-sub{font-size:10px;color:#9CA3AF;line-height:1.5;}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:8px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;}
+.pdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.p-ok{background:rgba(42,96,73,0.1);color:#2A6049;border:1px solid rgba(42,96,73,0.2);}
+.p-ok .pdot{background:#2A6049;}
+.p-pending{background:rgba(181,98,26,0.1);color:#B5621A;border:1px solid rgba(181,98,26,0.2);}
+.p-pending .pdot{background:#B5621A;}
+.p-missing{background:rgba(139,38,53,0.08);color:#8B2635;border:1px solid rgba(139,38,53,0.18);}
+.p-missing .pdot{background:#8B2635;}
+.p-na{background:rgba(214,211,203,0.4);color:#9CA3AF;border:1px solid rgba(214,211,203,0.6);}
+.p-na .pdot{background:#9CA3AF;}
+.p-info{background:rgba(46,134,171,0.1);color:#1C4F72;border:1px solid rgba(46,134,171,0.2);}
+.p-info .pdot{background:#2E86AB;}
+
+/* TABLES */
+.table-card{background:#fff;border:1px solid rgba(214,211,203,0.7);margin-bottom:2rem;overflow:hidden;}
+.table-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid rgba(214,211,203,0.5);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-size:11px;font-weight:600;color:#1A1F2E;}
+.table-note{font-size:10px;color:#9CA3AF;font-style:italic;}
+table{width:100%;border-collapse:collapse;}
+.th{font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#9CA3AF;font-weight:600;padding:10px 14px;border-bottom:1px solid #D6D3CB;text-align:left;background:#F0EDE6;white-space:nowrap;}
+.th.r{text-align:right;}
+.td{padding:10px 14px;border-bottom:1px solid rgba(214,211,203,0.4);font-size:12px;color:#1A1F2E;vertical-align:middle;}
+.td.mono{font-family:'JetBrains Mono',monospace;font-size:11px;}
+.td.r{text-align:right;}
+.td.muted{color:#9CA3AF;}
+tr:last-child .td{border-bottom:none;}
+tr.totrow .td{border-top:2px solid #1A1F2E;font-weight:600;background:#F0EDE6;border-bottom:none;}
+tr:hover:not(.totrow) td{background:rgba(240,237,230,0.35);}
+
+/* NARRATIVE */
+.narr-card{background:#fff;border:1px solid rgba(214,211,203,0.7);margin-bottom:2rem;}
+.narr-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid rgba(214,211,203,0.5);display:flex;align-items:center;justify-content:space-between;}
+.narr-body{padding:1.5rem;}
+textarea.narr-ta{width:100%;min-height:130px;padding:12px 14px;background:#FDFBF7;border:1px solid rgba(214,211,203,0.8);font-family:'Inter',sans-serif;font-size:12px;color:#1A1F2E;line-height:1.75;outline:none;resize:vertical;transition:border-color 0.2s;}
+textarea.narr-ta:focus{border-color:#2E86AB;}
+.narr-hint{font-size:10px;color:#9CA3AF;margin-top:8px;font-style:italic;}
+.cert-line{border-top:1px solid #D6D3CB;padding-top:8px;margin-top:40px;}
+.cert-label{font-size:10px;color:#9CA3AF;}
+
+@media print{
+  .site-header,.nav-strip,.no-print{display:none!important;}
+  main{padding:0;max-width:100%;}
+  .config-card{display:none!important;}
+  body{background:#fff;}
+  .cover-card{background:#1A1F2E!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .table-card,.check-card,.narr-card{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-left">
+    <div class="logo-mark"><div class="logo-dot"></div><div class="logo-line"></div></div>
+    <div>
+      <div class="header-product">Low Tide Ops</div>
+      <div class="header-sub">Draw Package Compiler · Horizon Tier</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="header-meta" id="hdr-date"></span>
+    <button class="btn-secondary no-print" onclick="window.print()" style="padding:7px 16px;">Print / Save PDF</button>
+  </div>
+</header>
+
+<nav class="nav-strip no-print">
+  <button class="nav-tab active" onclick="goTo('s-config')">Setup</button>
+  <button class="nav-tab" onclick="goTo('s-cover')">Cover</button>
+  <button class="nav-tab" onclick="goTo('s-checklist')">Checklist</button>
+  <button class="nav-tab" onclick="goTo('s-sov')">SOV Application</button>
+  <button class="nav-tab" onclick="goTo('s-register')">Invoice Register</button>
+  <button class="nav-tab" onclick="goTo('s-lien')">Lien Waivers</button>
+  <button class="nav-tab" onclick="goTo('s-narrative')">Narrative</button>
+</nav>
+
+<main>
+
+<!-- SETUP -->
+<div id="s-config" style="margin-bottom:2.5rem;">
+  <div class="section-eyebrow">Draw Package Setup</div>
+  <div class="config-card">
+    <div class="cfg-grid3">
+      <div class="field-block"><div class="field-label">Project</div><input class="field-input" id="c-project" value="The Harrington Residence"/></div>
+      <div class="field-block"><div class="field-label">Builder</div><input class="field-input" id="c-builder" value="Sayer &amp; Sons"/></div>
+      <div class="field-block"><div class="field-label">Lender</div><input class="field-input" id="c-lender" placeholder="e.g. First Republic Construction Lending"/></div>
+      <div class="field-block"><div class="field-label">Draw Number</div><input class="field-input mono" id="c-drawnum" value="Draw #4"/></div>
+      <div class="field-block"><div class="field-label">Draw Period</div><input class="field-input" id="c-period" placeholder="June 1–30, 2025"/></div>
+      <div class="field-block"><div class="field-label">Submission Date</div><input class="field-input" id="c-subdate" placeholder="Jul 1, 2025"/></div>
+      <div class="field-block"><div class="field-label">Base Contract Value</div><input class="field-input mono" id="c-contract" value="3200000"/></div>
+      <div class="field-block"><div class="field-label">Approved Change Orders</div><input class="field-input mono" id="c-changes" value="38500"/></div>
+      <div class="field-block"><div class="field-label">Retainage %</div><input class="field-input mono" id="c-retainage" value="10"/></div>
+    </div>
+    <div class="cfg-grid2" style="margin-bottom:1.25rem;">
+      <div class="field-block">
+        <div class="field-label">Google Sheet ID</div>
+        <input class="field-input mono" id="c-sheetid" value="127HmEqHqp5Vnsw3-ljB4yZykZi7OgHxRdbAdAIhXl34"/>
+      </div>
+      <div class="field-block">
+        <div class="field-label">Sheets API Key</div>
+        <input class="field-input mono" id="c-apikey" type="password" placeholder="AIza..."/>
+        <div style="font-size:10px;color:#9CA3AF;margin-top:4px;">Pulls APPROVED rows from Invoice Log automatically</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="buildPackage()">Build Draw Package</button>
+      <button class="btn-secondary" onclick="loadDemo()">Load Demo Data</button>
+      <span style="font-size:10px;color:#9CA3AF;margin-left:4px;">No Sheet connection yet? Use demo data to preview.</span>
+    </div>
+  </div>
+  <div class="status-bar" id="status-bar"><div class="spinner"></div><span id="status-txt">Loading...</span></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- COVER -->
+<div id="s-cover" style="display:none;">
+  <div class="section-eyebrow">Cover Page</div>
+  <div class="cover-card">
+    <div class="cover-eyebrow">Low Tide Ops · Builder Experience Services</div>
+    <div class="cover-title" id="cv-title">Draw Package — Draw #4</div>
+    <div class="cover-sub" id="cv-period">Period: —</div>
+    <div class="cover-divider"></div>
+    <div class="draw-amt" id="cv-amt">$—</div>
+    <div class="draw-amt-label">Total Draw Requested (Net of Retainage)</div>
+    <div class="cover-divider"></div>
+    <div class="cover-grid">
+      <div><div class="cf-label">Project</div><div class="cf-value" id="cv-project"></div></div>
+      <div><div class="cf-label">Builder</div><div class="cf-value" id="cv-builder"></div></div>
+      <div><div class="cf-label">Lender</div><div class="cf-value" id="cv-lender"></div></div>
+      <div><div class="cf-label">Submitted by</div><div class="cf-value">Low Tide Ops · michael@lowtideops.com</div></div>
+      <div><div class="cf-label">Base Contract</div><div class="cf-value mono" id="cv-contract"></div></div>
+      <div><div class="cf-label">Approved Changes</div><div class="cf-value mono" id="cv-changes"></div></div>
+      <div><div class="cf-label">Revised Contract</div><div class="cf-value mono" id="cv-revised"></div></div>
+      <div><div class="cf-label">Submission Date</div><div class="cf-value" id="cv-subdate"></div></div>
+    </div>
+    <div class="cover-divider"></div>
+    <div style="font-size:9px;color:rgba(107,114,128,0.55);line-height:1.75;">For reporting and coordination purposes only. All financial figures are compiled from builder-reported data and provided for informational purposes only. Low Tide Ops does not approve payments, certify work-in-place, or guarantee lender approval. The builder is responsible for the accuracy of all quantities and amounts submitted. Low Tide Ops is retained by and reports to the builder.</div>
+  </div>
+  <div class="horizon-mark"><div class="horizon-dot"></div></div>
+</div>
+
+<!-- CHECKLIST -->
+<div id="s-checklist" style="display:none;">
+  <div class="section-eyebrow">Pre-Submission Checklist</div>
+  <div class="check-card">
+    <div class="check-card-header">
+      <div class="check-card-title">Draw Package Readiness</div>
+      <div class="check-progress" id="chk-progress">0 / 10 complete</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="chk-fill" style="width:0%"></div></div>
+    <div class="check-body" id="chk-body"></div>
+  </div>
+  <div class="horizon-mark"><div class="horizon-dot"></div></div>
+</div>
+
+<!-- SOV APPLICATION -->
+<div id="s-sov" style="display:none;">
+  <div class="section-eyebrow">Schedule of Values — Draw Application</div>
+  <div class="table-card">
+    <div class="table-hdr">
+      <div class="table-title" id="sov-title">SOV Application</div>
+      <div class="table-note">APPROVED invoices only · Prior draw totals from project history</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="th" style="width:30px;">#</th>
+          <th class="th">Category</th>
+          <th class="th r">Contract Budget</th>
+          <th class="th r">Prior Draws</th>
+          <th class="th r">This Draw (Gross)</th>
+          <th class="th r">Retainage</th>
+          <th class="th r">This Draw (Net)</th>
+          <th class="th r">Total to Date</th>
+          <th class="th r">% Complete</th>
+        </tr>
+      </thead>
+      <tbody id="sov-body"></tbody>
+    </table>
+  </div>
+  <div class="horizon-mark"><div class="horizon-dot"></div></div>
+</div>
+
+<!-- INVOICE REGISTER -->
+<div id="s-register" style="display:none;">
+  <div class="section-eyebrow">Invoice Register — This Draw Period</div>
+  <div class="table-card">
+    <div class="table-hdr">
+      <div class="table-title">Supporting Invoices</div>
+      <div class="table-note" id="reg-count">0 invoices</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="th">Ref #</th>
+          <th class="th">Vendor / Description</th>
+          <th class="th">SOV Category</th>
+          <th class="th">Invoice Date</th>
+          <th class="th r">Amount</th>
+          <th class="th">Lien Waiver</th>
+          <th class="th">Status</th>
+        </tr>
+      </thead>
+      <tbody id="reg-body"></tbody>
+    </table>
+  </div>
+  <div class="horizon-mark"><div class="horizon-dot"></div></div>
+</div>
+
+<!-- LIEN WAIVERS -->
+<div id="s-lien" style="display:none;">
+  <div class="section-eyebrow">Lien Waiver Status</div>
+  <div class="table-card">
+    <div class="table-hdr">
+      <div class="table-title">Conditional Waivers — This Draw</div>
+      <div class="table-note">Conditional on payment · Update status column as waivers are received</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="th">Vendor</th>
+          <th class="th">SOV Category</th>
+          <th class="th r">Amount</th>
+          <th class="th">Waiver Type</th>
+          <th class="th">Status</th>
+          <th class="th">Notes</th>
+        </tr>
+      </thead>
+      <tbody id="lien-body"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:1rem;" class="table-card">
+    <div class="table-hdr">
+      <div class="table-title">Prior Draw Unconditional Waivers</div>
+      <div class="table-note">Must be received before lender releases this draw</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="th">Vendor</th>
+          <th class="th">Draw Reference</th>
+          <th class="th r">Amount</th>
+          <th class="th">Status</th>
+        </tr>
+      </thead>
+      <tbody id="lien-prior"></tbody>
+    </table>
+  </div>
+  <div class="horizon-mark"><div class="horizon-dot"></div></div>
+</div>
+
+<!-- NARRATIVE -->
+<div id="s-narrative" style="display:none;">
+  <div class="section-eyebrow">Budget Variance Narrative</div>
+  <div class="narr-card">
+    <div class="narr-hdr">
+      <div class="table-title">Draw Narrative — Builder Reviews Before Submission</div>
+      <button class="btn-secondary no-print" onclick="genNarrative()" style="padding:6px 14px;font-size:9px;">Generate with AI ↗</button>
+    </div>
+    <div class="narr-body">
+      <textarea class="narr-ta" id="narr-ta" placeholder="Click 'Generate with AI' for a draft narrative, or type manually. Cover: work completed this period, budget health by SOV category, any variances requiring lender explanation, and what's planned for the next draw period. Builder must review and approve before submission."></textarea>
+      <div class="narr-hint">Builder approval required before this narrative is submitted to the lender. It represents the project to a third party.</div>
+    </div>
+  </div>
+  <div class="narr-card">
+    <div class="narr-hdr"><div class="table-title">Builder Certification</div></div>
+    <div class="narr-body" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">
+      <div>
+        <div style="font-size:10px;color:#9CA3AF;margin-bottom:36px;">Builder certifies work-in-place and accuracy of all quantities</div>
+        <div class="cert-line"><div class="cert-label">Signature · <span id="cert-name"></span></div></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#9CA3AF;margin-bottom:36px;">Date signed</div>
+        <div class="cert-line"><div class="cert-label">Date</div></div>
+      </div>
+      <div style="grid-column:1/-1;border-top:1px solid rgba(214,211,203,0.5);padding-top:1rem;">
+        <div style="font-size:9px;color:#9CA3AF;line-height:1.75;">Prepared by Low Tide Ops on behalf of <span id="cert-builder"></span>. This package is provided for lender draw administration purposes only. Low Tide Ops does not certify work-in-place, approve payments, or act as a legal or financial advisor. The builder is responsible for the accuracy of all quantities and amounts submitted.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+const pct = n => Math.round(n||0) + '%';
+
+$('hdr-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+function goTo(id){ $(id)?.scrollIntoView({behavior:'smooth',block:'start'}); }
+function showStatus(t){ $('status-txt').textContent=t; $('status-bar').className='status-bar on'; }
+function hideStatus(){ $('status-bar').className='status-bar'; }
+function toast(msg,type){ const t=$('toast'); t.textContent=msg; t.className='toast '+(type==='ok'?'ok':'err'); setTimeout(()=>t.className='toast',6000); }
+
+// ── CHECKLIST ────────────────────────────────────────────────
+const CL_ITEMS = [
+  ['Draw period confirmed with builder',         'Builder has verbally or in writing confirmed the dates and scope of this draw.'],
+  ['All invoices for this period are logged',    'Every invoice received during the draw period has been entered in the Invoice Log.'],
+  ['All Invoice Log rows marked APPROVED',       'No PENDING rows remain for this draw period. All amounts spot-checked against originals.'],
+  ['SOV categories assigned to all invoices',    'Every invoice has a category. No blank or miscategorized SOV fields.'],
+  ['Draw amounts verified against SOV budgets',  'No SOV line exceeds its contract budget without a corresponding approved change order.'],
+  ['Conditional lien waivers requested',         'Conditional waiver request sent to every vendor appearing in this draw.'],
+  ['Prior draw unconditional waivers received',  'Unconditional waivers from all prior draw vendors confirmed. Required before lender releases.'],
+  ['Retainage rate confirmed with lender',       'Retainage percentage has not changed. Default 10% until substantial completion.'],
+  ['Narrative drafted and builder approved',     'Budget variance narrative reviewed and approved by builder before submission.'],
+  ['Package submitted and receipt confirmed',    'Submitted via lender portal or email. Submission date and confirmation logged.'],
+];
+let chkState = new Array(CL_ITEMS.length).fill(false);
+function renderChecklist(){
+  $('chk-body').innerHTML = CL_ITEMS.map(([title,sub],i)=>`
+    <div class="check-row">
+      <div class="check-box ${chkState[i]?'on':''}" onclick="toggleChk(${i})">${chkState[i]?'✓':''}</div>
+      <div class="check-text"><div class="check-title">${title}</div><div class="check-sub">${sub}</div></div>
+    </div>`).join('');
+  const done=chkState.filter(Boolean).length;
+  $('chk-progress').textContent=`${done} / ${CL_ITEMS.length} complete`;
+  $('chk-fill').style.width=(done/CL_ITEMS.length*100)+'%';
+}
+function toggleChk(i){ chkState[i]=!chkState[i]; renderChecklist(); }
+
+// ── SOV BUDGETS & PRIOR DRAWS ────────────────────────────────
+const SOV_BUDGETS = {
+  'Site Work & Foundation':           320000,
+  'Framing & Structure':              480000,
+  'Roofing & Exterior Envelope':      384000,
+  'MEP Systems':                      512000,
+  'Windows & Doors':                  256000,
+  'Interior Finishes':                640000,
+  'Site Improvements & Landscaping':  192000,
+  'Builder Fee & General Conditions': 416000,
+};
+// Prior paid amounts from dashboard data (paid status only)
+const PRIOR_DRAWS = {
+  'Site Work & Foundation':           320000,
+  'Framing & Structure':              308000,
+  'Roofing & Exterior Envelope':      30720,
+  'MEP Systems':                      57600,
+  'Windows & Doors':                  51200,
+  'Interior Finishes':                0,
+  'Site Improvements & Landscaping':  0,
+  'Builder Fee & General Conditions': 149080,
+};
+
+function renderSOV(invoices, retPct){
+  const cats = Object.keys(SOV_BUDGETS);
+  let tBud=0,tPrior=0,tGross=0,tRet=0,tNet=0,tTtd=0;
+  const rows = cats.map((cat,i)=>{
+    const budget  = SOV_BUDGETS[cat];
+    const prior   = PRIOR_DRAWS[cat]||0;
+    const gross   = invoices.filter(inv=>inv.sovCategory===cat).reduce((s,inv)=>s+inv.amount,0);
+    const ret     = Math.round(gross*retPct/100);
+    const net     = gross-ret;
+    const ttd     = prior+gross;
+    const comp    = budget>0?Math.round(ttd/budget*100):0;
+    tBud+=budget; tPrior+=prior; tGross+=gross; tRet+=ret; tNet+=net; tTtd+=ttd;
+    return `<tr>
+      <td class="td muted" style="font-size:10px;">${String(i+1).padStart(2,'0')}</td>
+      <td class="td">${cat}</td>
+      <td class="td mono r">${fmt(budget)}</td>
+      <td class="td mono r muted">${fmt(prior)}</td>
+      <td class="td mono r" style="font-weight:600;color:${gross>0?'#1A1F2E':'#D6D3CB'};">${gross>0?fmt(gross):'—'}</td>
+      <td class="td mono r" style="color:#B5621A;">${ret>0?fmt(ret):'—'}</td>
+      <td class="td mono r" style="font-weight:600;color:${net>0?'#2A6049':'#D6D3CB'};">${net>0?fmt(net):'—'}</td>
+      <td class="td mono r">${fmt(ttd)}</td>
+      <td class="td r"><span class="pill ${comp>=100?'p-ok':comp>=50?'p-info':'p-na'}" style="gap:0;">${pct(comp)}</span></td>
+    </tr>`;
+  });
+  rows.push(`<tr class="totrow">
+    <td class="td" colspan="2">Total</td>
+    <td class="td mono r">${fmt(tBud)}</td>
+    <td class="td mono r">${fmt(tPrior)}</td>
+    <td class="td mono r">${fmt(tGross)}</td>
+    <td class="td mono r" style="color:#B5621A;">${fmt(tRet)}</td>
+    <td class="td mono r" style="color:#2A6049;">${fmt(tNet)}</td>
+    <td class="td mono r">${fmt(tTtd)}</td>
+    <td class="td r">${pct(Math.round(tTtd/tBud*100))}</td>
+  </tr>`);
+  $('sov-body').innerHTML=rows.join('');
+  $('sov-title').textContent=`SOV Application — ${$('c-drawnum').value} · ${$('c-period').value}`;
+  return {tGross,tRet,tNet};
+}
+
+// ── INVOICE REGISTER ─────────────────────────────────────────
+function renderRegister(invoices){
+  const total=invoices.reduce((s,i)=>s+i.amount,0);
+  $('reg-count').textContent=`${invoices.length} invoice${invoices.length!==1?'s':''} · ${fmt(total)}`;
+  $('reg-body').innerHTML=invoices.map(inv=>`<tr>
+    <td class="td mono muted" style="font-size:10px;">${inv.ref}</td>
+    <td class="td"><div style="font-weight:600;font-size:12px;">${inv.vendor}</div><div style="font-size:10px;color:#6B7280;margin-top:2px;">${inv.description}</div></td>
+    <td class="td" style="font-size:11px;color:#6B7280;">${inv.sovCategory}</td>
+    <td class="td mono" style="font-size:11px;">${inv.invoiceDate}</td>
+    <td class="td mono r">${fmt(inv.amount)}</td>
+    <td class="td"><span class="pill p-pending"><div class="pdot"></div>Conditional</span></td>
+    <td class="td"><span class="pill p-info"><div class="pdot"></div>Approved</span></td>
+  </tr>`).join('');
+}
+
+// ── LIEN WAIVERS ─────────────────────────────────────────────
+function renderLien(invoices){
+  $('lien-body').innerHTML=invoices.map(inv=>`<tr>
+    <td class="td"><div style="font-weight:600;">${inv.vendor}</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px;">${inv.invoiceDate}</div></td>
+    <td class="td" style="font-size:11px;color:#6B7280;">${inv.sovCategory}</td>
+    <td class="td mono r">${fmt(inv.amount)}</td>
+    <td class="td"><span class="pill p-info"><div class="pdot"></div>Conditional</span></td>
+    <td class="td"><span class="pill p-pending"><div class="pdot"></div>Requested</span></td>
+    <td class="td"><input style="border:none;background:transparent;font-size:11px;color:#6B7280;width:100%;outline:none;font-family:Inter,sans-serif;" placeholder="Add note..."/></td>
+  </tr>`).join('');
+  $('lien-prior').innerHTML=`<tr>
+    <td class="td muted" style="font-style:italic;" colspan="3">No outstanding prior waivers — add rows manually if needed</td>
+    <td class="td"><span class="pill p-na"><div class="pdot"></div>N/A</span></td>
+  </tr>`;
+}
+
+// ── COVER ────────────────────────────────────────────────────
+function populateCover(invoices){
+  const contract  = parseFloat($('c-contract').value)||3200000;
+  const changes   = parseFloat($('c-changes').value)||0;
+  const retPct    = parseFloat($('c-retainage').value)||10;
+  const gross     = invoices.reduce((s,i)=>s+i.amount,0);
+  const net       = gross - Math.round(gross*retPct/100);
+  $('cv-title').textContent   = `Draw Package — ${$('c-drawnum').value}`;
+  $('cv-period').textContent  = `Period: ${$('c-period').value}`;
+  $('cv-amt').textContent     = fmt(net);
+  $('cv-project').textContent = $('c-project').value;
+  $('cv-builder').textContent = $('c-builder').value;
+  $('cv-lender').textContent  = $('c-lender').value||'No construction lender on record';
+  $('cv-contract').textContent= fmt(contract);
+  $('cv-changes').textContent = fmt(changes);
+  $('cv-revised').textContent = fmt(contract+changes);
+  $('cv-subdate').textContent = $('c-subdate').value||'—';
+  $('cert-name').textContent  = $('c-builder').value;
+  $('cert-builder').textContent=$('c-builder').value;
+}
+
+// ── NARRATIVE ────────────────────────────────────────────────
+async function genNarrative(){
+  const invoices = window._inv||[];
+  const gross = invoices.reduce((s,i)=>s+i.amount,0);
+  const bySOV = {};
+  invoices.forEach(inv=>{ bySOV[inv.sovCategory]=(bySOV[inv.sovCategory]||0)+inv.amount; });
+  const sovLine = Object.entries(bySOV).map(([k,v])=>`${k}: ${fmt(v)}`).join('; ');
+  showStatus('Generating narrative with AI...');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:700,
+        messages:[{role:'user',content:`Write a 3-paragraph lender draw narrative for a luxury custom home construction draw submission. Professional, factual tone — this goes directly to a construction lender. No bullet points. No headers.
+
+Project: ${$('c-project').value}
+Builder: ${$('c-builder').value}
+Draw: ${$('c-drawnum').value}
+Period: ${$('c-period').value}
+Gross draw requested: ${fmt(gross)}
+Retainage: ${$('c-retainage').value}%
+By SOV category: ${sovLine}
+
+Paragraph 1: What work was completed this period and what the draw covers by SOV line.
+Paragraph 2: Overall budget health, % complete against contract, any line items with notable variance and why.
+Paragraph 3: What is planned for the next draw period and any open items the lender should be aware of.
+
+Keep each paragraph 3–4 sentences. Factual and specific, not promotional.`}]
+      })
+    });
+    const data=await res.json();
+    $('narr-ta').value=data.content.map(b=>b.text||'').join('');
+    hideStatus();
+    toast('Narrative generated — builder must review before submission.','ok');
+  } catch(e){ hideStatus(); toast('Narrative generation failed: '+e.message,'err'); }
+}
+
+// ── DEMO DATA ────────────────────────────────────────────────
+function demoInvoices(){
+  return [
+    {ref:'INV-010',vendor:'Pacific Coast Framing',invoiceDate:'Jun 10, 2025',amount:37600,description:'Framing completion draw — balance',sovCategory:'Framing & Structure'},
+    {ref:'INV-014',vendor:'Southern CA Electric', invoiceDate:'Jun 5, 2025', amount:19200,description:'Electrical panel & conduit deposit',sovCategory:'MEP Systems'},
+    {ref:'GC-006', vendor:'Sayer & Sons',         invoiceDate:'Jun 10, 2025',amount:9000, description:'General conditions — Jun (partial)',sovCategory:'Builder Fee & General Conditions'},
+    {ref:'INV-022',vendor:'Coastline Roofing Co', invoiceDate:'Jun 18, 2025',amount:24000,description:'Roofing underlayment & flashing',sovCategory:'Roofing & Exterior Envelope'},
+    {ref:'INV-023',vendor:'Precision Plumbing',   invoiceDate:'Jun 22, 2025',amount:18500,description:'Plumbing rough-in — second floor',sovCategory:'MEP Systems'},
+  ];
+}
+
+// ── BUILD ────────────────────────────────────────────────────
+async function buildPackage(){
+  showStatus('Loading approved invoices...');
+  let invoices=[];
+  const sheetId=$('c-sheetid').value.trim();
+  const apiKey =$('c-apikey').value.trim();
+
+  if(sheetId && apiKey){
+    try {
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent('Invoice Log')}?key=${apiKey}`;
+      const res=await fetch(url);
+      if(!res.ok) throw new Error(`Sheets API ${res.status}`);
+      const data=await res.json();
+      const rows=data.values||[];
+      const h=rows[0]||[];
+      const iRef=h.indexOf('Ref #'),iVendor=h.indexOf('Vendor'),iDate=h.indexOf('Invoice Date');
+      const iAmt=h.indexOf('Amount'),iDesc=h.indexOf('Description'),iSOV=h.indexOf('SOV Category');
+      const iRev=h.indexOf('Review Status');
+      invoices=rows.slice(1)
+        .filter(r=>(r[iRev]||'').toUpperCase()==='APPROVED')
+        .map(r=>({
+          ref:r[iRef]||'',vendor:r[iVendor]||'',invoiceDate:r[iDate]||'',
+          amount:parseFloat((r[iAmt]||'0').toString().replace(/[^0-9.]/g,'')),
+          description:r[iDesc]||'',sovCategory:r[iSOV]||'',
+        }));
+      showStatus(`Found ${invoices.length} approved invoices — building...`);
+    } catch(e){
+      hideStatus();
+      toast('Could not load sheet: '+e.message+'. Showing demo data.','err');
+      invoices=demoInvoices();
+    }
+  } else {
+    invoices=demoInvoices();
+  }
+
+  window._inv=invoices;
+  const retPct=parseFloat($('c-retainage').value)||10;
+
+  populateCover(invoices);
+  renderChecklist();
+  renderSOV(invoices,retPct);
+  renderRegister(invoices);
+  renderLien(invoices);
+
+  ['s-cover','s-checklist','s-sov','s-register','s-lien','s-narrative'].forEach(id=>$(id).style.display='block');
+  hideStatus();
+
+  const gross=invoices.reduce((s,i)=>s+i.amount,0);
+  toast(`✓ Package built — ${invoices.length} invoice${invoices.length!==1?'s':''} · ${fmt(gross)} gross draw`,'ok');
+  $('s-cover').scrollIntoView({behavior:'smooth'});
+}
+
+function loadDemo(){
+  $('c-period').value='June 1–30, 2025';
+  $('c-subdate').value='Jul 1, 2025';
+  $('c-lender').value='First Republic Construction Lending';
+  buildPackage();
+}
+</script>
+</body>
+</html>
