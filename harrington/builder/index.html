@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Low Tide Ops — Builder Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --midnight: #1A1F2E;
+      --ocean:    #1C4F72;
+      --tide:     #2E86AB;
+      --sand:     #F0EDE6;
+      --fog:      #D6D3CB;
+      --taupe:    #6B7280;
+      --cream:    #FDFBF7;
+      --risk:     #8B2635;
+      --warn:     #B5621A;
+      --ok:       #2A6049;
+      --co:       #5B3FA6;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--sand);
+      color: var(--midnight);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── GATE ── */
+    #gate {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      background: var(--midnight);
+    }
+
+    .gate-logo {
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .gate-title {
+      font-size: 22px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .gate-sub {
+      font-size: 11px;
+      color: var(--taupe);
+      margin-bottom: 40px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    .gate-field {
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 12px;
+    }
+
+    .gate-field label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 6px;
+    }
+
+    .gate-field input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      letter-spacing: 0.2em;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .gate-field input:focus { border-color: var(--tide); }
+    .gate-field input.error { border-color: var(--risk); }
+
+    .gate-error {
+      font-size: 10px;
+      color: var(--risk);
+      text-align: center;
+      margin-top: -6px;
+      margin-bottom: 12px;
+      min-height: 16px;
+    }
+
+    .gate-btn {
+      width: 100%;
+      max-width: 320px;
+      padding: 14px;
+      background: var(--tide);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .gate-btn:hover { background: var(--ocean); }
+
+    /* ── APP SHELL ── */
+    #app { display: none; min-height: 100vh; }
+
+    .app-header {
+      background: var(--midnight);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-header-left { display: flex; flex-direction: column; gap: 2px; }
+
+    .app-header-eyebrow {
+      font-size: 8px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--taupe);
+    }
+
+    .app-header-project {
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .app-header-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--taupe);
+    }
+
+    .app-body {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+
+    .section-label {
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+
+    /* ── LOG TYPE GRID ── */
+    .log-type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    @media (min-width: 480px) {
+      .log-type-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (min-width: 640px) {
+      .log-type-grid { grid-template-columns: repeat(4, 1fr); }
+      .app-body { padding: 28px 24px 80px; }
+    }
+
+    .log-type-btn {
+      padding: 14px 10px;
+      background: var(--cream);
+      border: 1px solid var(--fog);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .log-type-btn:hover { border-color: var(--tide); background: #fff; }
+
+    .log-type-btn.active              { border-color: var(--tide);  background: #fff; box-shadow: inset 0 0 0 1px var(--tide); }
+    .log-type-btn.active.risk-type    { border-color: var(--risk);  box-shadow: inset 0 0 0 1px var(--risk); }
+    .log-type-btn.active.issue-type   { border-color: var(--warn);  box-shadow: inset 0 0 0 1px var(--warn); }
+    .log-type-btn.active.co-type      { border-color: var(--co);    box-shadow: inset 0 0 0 1px var(--co); }
+
+    .log-type-icon  { font-size: 20px; line-height: 1; }
+    .log-type-label { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--midnight); }
+    .log-type-desc  { font-size: 9px; color: var(--taupe); line-height: 1.4; }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: var(--cream);
+      border: 1px solid var(--fog);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .form-card-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--midnight);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--fog);
+    }
+
+    .form-card-title.risk-title  { color: var(--risk); border-color: rgba(139,38,53,0.2); }
+    .form-card-title.issue-title { color: var(--warn); border-color: rgba(181,98,26,0.2); }
+    .form-card-title.co-title    { color: var(--co);   border-color: rgba(91,63,166,0.2); }
+
+    /* ── FIELDS ── */
+    .field { margin-bottom: 14px; }
+
+    .field label {
+      display: block;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 11px 13px;
+      background: #fff;
+      border: 1px solid var(--fog);
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--midnight);
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus { border-color: var(--tide); }
+
+    .field textarea { resize: none; line-height: 1.6; }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ── DECISION STATUS PILLS ── */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .status-pill {
+      padding: 10px 12px;
+      border: 1px solid var(--fog);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #fff;
+      transition: all 0.15s;
+    }
+
+    .status-pill:hover { border-color: var(--tide); }
+
+    .status-pill.selected { border-color: var(--tide); background: rgba(46,134,171,0.06); box-shadow: inset 0 0 0 1px var(--tide); }
+    .status-pill.selected.pending-urgent { border-color: var(--risk); background: rgba(139,38,53,0.06); box-shadow: inset 0 0 0 1px var(--risk); }
+    .status-pill.selected.resolved-pill  { border-color: var(--ok);   background: rgba(42,96,73,0.06);  box-shadow: inset 0 0 0 1px var(--ok); }
+
+    .status-pill input[type="radio"] { display: none; }
+
+    .status-pill-dot {
+      width: 10px;
+      height: 10px;
+      min-width: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--fog);
+      margin-top: 2px;
+      transition: all 0.15s;
+    }
+
+    .status-pill.selected .status-pill-dot { border-color: var(--tide); background: var(--tide); }
+    .status-pill.selected.pending-urgent .status-pill-dot { border-color: var(--risk); background: var(--risk); }
+    .status-pill.selected.resolved-pill .status-pill-dot  { border-color: var(--ok);   background: var(--ok); }
+
+    .status-pill-text { flex: 1; }
+    .status-pill-label { font-size: 10px; font-weight: 600; color: var(--midnight); }
+    .status-pill-desc  { font-size: 9px;  color: var(--taupe); margin-top: 2px; line-height: 1.4; }
+
+    /* ── URGENT FLAG ── */
+    .urgent-flag {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(139,38,53,0.06);
+      border: 1px solid rgba(139,38,53,0.2);
+      border-radius: 4px;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .urgent-flag input[type="checkbox"] {
+      width: 16px; height: 16px; min-width: 16px;
+      margin-top: 1px;
+      accent-color: var(--risk);
+      cursor: pointer;
+    }
+
+    .urgent-flag-label { font-size: 10px; font-weight: 600; color: var(--risk); letter-spacing: 0.05em; }
+    .urgent-flag-desc  { font-size: 10px; color: var(--taupe); margin-top: 2px; line-height: 1.4; }
+
+
+    /* ── CO AMOUNT ── */
+    .co-amount-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ── SUBMIT ── */
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--tide);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+
+    .submit-btn:hover    { background: var(--ocean); }
+    .submit-btn.risk-btn  { background: var(--risk); }
+    .submit-btn.risk-btn:hover  { background: #6B1D28; }
+    .submit-btn.issue-btn { background: var(--warn); }
+    .submit-btn.issue-btn:hover { background: #8B4912; }
+    .submit-btn.co-btn    { background: var(--co); }
+    .submit-btn.co-btn:hover    { background: #432E7D; }
+
+    /* ── CONFIRM ── */
+    #confirm-msg {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: rgba(42,96,73,0.08);
+      border: 1px solid rgba(42,96,73,0.25);
+      border-radius: 6px;
+    }
+
+    .confirm-title  { font-size: 11px; font-weight: 600; color: var(--ok); }
+    .confirm-detail { font-size: 11px; color: var(--taupe); margin-top: 3px; }
+
+    /* ── RECENT LOGS ── */
+    .log-item {
+      background: var(--cream);
+      border: 1px solid var(--fog);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .log-item-badge {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-progress  { background: rgba(46,134,171,0.1);  color: var(--tide); }
+    .badge-schedule  { background: rgba(28,79,114,0.1);   color: var(--ocean); }
+    .badge-decision  { background: rgba(42,96,73,0.1);    color: var(--ok); }
+    .badge-risk      { background: rgba(139,38,53,0.1);   color: var(--risk); }
+    .badge-issue     { background: rgba(181,98,26,0.1);   color: var(--warn); }
+    .badge-changeorder { background: rgba(91,63,166,0.1); color: var(--co); }
+
+    .log-item-body   { flex: 1; min-width: 0; }
+    .log-item-text   { font-size: 12px; color: var(--midnight); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .log-item-meta   { font-size: 10px; color: var(--taupe); margin-top: 2px; }
+
+    /* ── CONDITIONAL FIELD VISIBILITY ── */
+    .decision-pending  { display: none; }
+    .decision-resolved { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ── GATE ── -->
+<div id="gate">
+  <div class="gate-logo">Low Tide Ops · Builder Portal</div>
+  <div class="gate-title">Builder Log</div>
+  <div class="gate-sub">Enter your project PIN to continue</div>
+  <div class="gate-field">
+    <label>Project PIN</label>
+    <input type="password" id="pin-input" maxlength="6" placeholder="· · · · · ·"
+      autocomplete="off" inputmode="numeric"/>
+  </div>
+  <div class="gate-error" id="gate-error"></div>
+  <button class="gate-btn" onclick="attemptLogin()">Enter Builder Log</button>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+
+  <div class="app-header">
+    <div class="app-header-left">
+      <div class="app-header-eyebrow">Low Tide Ops · Builder Log</div>
+      <div class="app-header-project" id="app-project-name">—</div>
+    </div>
+    <div class="app-header-right" id="app-date">—</div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- LOG TYPE SELECTION -->
+    <div class="section-label">What are you logging?</div>
+    <div class="log-type-grid">
+      <button class="log-type-btn" onclick="selectType('progress')" id="btn-progress">
+        <span class="log-type-icon">📋</span>
+        <span class="log-type-label">Progress</span>
+        <span class="log-type-desc">General update</span>
+      </button>
+      <button class="log-type-btn" onclick="selectType('schedule')" id="btn-schedule">
+        <span class="log-type-icon">📅</span>
+        <span class="log-type-label">Schedule</span>
+        <span class="log-type-desc">Timeline change</span>
+      </button>
+      <button class="log-type-btn" onclick="selectType('decision')" id="btn-decision">
+        <span class="log-type-icon">◈</span>
+        <span class="log-type-label">Decision</span>
+        <span class="log-type-desc">Made or needed</span>
+      </button>
+      <button class="log-type-btn co-type" onclick="selectType('changeorder')" id="btn-changeorder">
+        <span class="log-type-icon">📝</span>
+        <span class="log-type-label">Change Order</span>
+        <span class="log-type-desc">Scope / cost change</span>
+      </button>
+      <button class="log-type-btn risk-type" onclick="selectType('risk')" id="btn-risk">
+        <span class="log-type-icon">⚠</span>
+        <span class="log-type-label">Risk</span>
+        <span class="log-type-desc">Potential issue</span>
+      </button>
+      <button class="log-type-btn issue-type" onclick="selectType('issue')" id="btn-issue">
+        <span class="log-type-icon">🚨</span>
+        <span class="log-type-label">Issue</span>
+        <span class="log-type-desc">Active problem</span>
+      </button>
+    </div>
+
+    <!-- FORM AREA -->
+    <div id="form-area" style="display:none;">
+
+      <!-- ── PROGRESS ── -->
+      <div id="form-progress" class="form-card" style="display:none;">
+        <div class="form-card-title">📋 General Progress Update</div>
+        <div class="field">
+          <label>What happened today / this week?</label>
+          <textarea id="p-update" rows="4" placeholder="e.g. Framing on the east wing is complete. Crew moved to roof sheathing. Running about a day ahead of schedule."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Phase / Area</label>
+            <select id="p-phase">
+              <option>Framing</option><option>Foundation</option><option>Roofing</option>
+              <option>Rough Plumbing</option><option>Rough Electrical</option><option>HVAC</option>
+              <option>Insulation</option><option>Drywall</option><option>Finishes</option>
+              <option>Exterior</option><option>Landscaping</option><option>Punch List</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Overall Progress %</label>
+            <input type="number" id="p-percent" min="0" max="100" placeholder="e.g. 42"/>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="submitLog('progress')">Submit Progress Log</button>
+      </div>
+
+      <!-- ── SCHEDULE ── -->
+      <div id="form-schedule" class="form-card" style="display:none;">
+        <div class="form-card-title">📅 Schedule Update</div>
+        <div class="field">
+          <label>What is changing and why?</label>
+          <textarea id="s-update" rows="3" placeholder="e.g. Framing completion pushed from July 3 to July 8 due to inspector availability. No impact on overall completion date."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Milestone affected</label>
+            <input type="text" id="s-milestone" placeholder="e.g. Framing complete"/>
+          </div>
+          <div class="field">
+            <label>New target date</label>
+            <input type="date" id="s-date"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Schedule impact</label>
+          <select id="s-impact">
+            <option value="none">No impact on completion</option>
+            <option value="minor">Minor delay — under 1 week</option>
+            <option value="moderate">Moderate delay — 1–2 weeks</option>
+            <option value="significant">Significant delay — needs discussion</option>
+          </select>
+        </div>
+        <button class="submit-btn" onclick="submitLog('schedule')">Submit Schedule Update</button>
+      </div>
+
+      <!-- ── DECISION ── -->
+      <div id="form-decision" class="form-card" style="display:none;">
+        <div class="form-card-title">◈ Decision Log</div>
+
+        <div class="field">
+          <label>Decision item</label>
+          <input type="text" id="d-item" placeholder="e.g. Primary bath tile selection"/>
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <div class="status-grid">
+            <label class="status-pill" id="pill-pending" onclick="setDecisionStatus('pending')">
+              <input type="radio" name="d-status" value="pending"/>
+              <div class="status-pill-dot"></div>
+              <div class="status-pill-text">
+                <div class="status-pill-label">Owner decision needed</div>
+                <div class="status-pill-desc">Pending — not blocking</div>
+              </div>
+            </label>
+            <label class="status-pill pending-urgent" id="pill-pending-urgent" onclick="setDecisionStatus('pending-urgent')">
+              <input type="radio" name="d-status" value="pending-urgent"/>
+              <div class="status-pill-dot"></div>
+              <div class="status-pill-text">
+                <div class="status-pill-label">Owner decision needed</div>
+                <div class="status-pill-desc">Urgent — blocking progress</div>
+              </div>
+            </label>
+            <label class="status-pill resolved-pill" id="pill-resolved-owner" onclick="setDecisionStatus('resolved-owner')">
+              <input type="radio" name="d-status" value="resolved-owner"/>
+              <div class="status-pill-dot"></div>
+              <div class="status-pill-text">
+                <div class="status-pill-label">Decision made</div>
+                <div class="status-pill-desc">By owner</div>
+              </div>
+            </label>
+            <label class="status-pill resolved-pill" id="pill-resolved-builder" onclick="setDecisionStatus('resolved-builder')">
+              <input type="radio" name="d-status" value="resolved-builder"/>
+              <div class="status-pill-dot"></div>
+              <div class="status-pill-text">
+                <div class="status-pill-label">Decision made</div>
+                <div class="status-pill-desc">By builder</div>
+              </div>
+            </label>
+            <label class="status-pill resolved-pill" id="pill-resolved-joint" onclick="setDecisionStatus('resolved-joint')">
+              <input type="radio" name="d-status" value="resolved-joint"/>
+              <div class="status-pill-dot"></div>
+              <div class="status-pill-text">
+                <div class="status-pill-label">Decision made</div>
+                <div class="status-pill-desc">Jointly</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pending fields -->
+        <div class="decision-pending" id="d-pending-fields">
+          <div class="field">
+            <label>What does the owner need to decide?</label>
+            <textarea id="d-context" rows="3" placeholder="e.g. We need to confirm the tile selection before the waterproofing layer goes in on July 10. Three options have been shortlisted — samples are in the inspiration folder."></textarea>
+          </div>
+          <div class="field">
+            <label>Decision needed by</label>
+            <input type="date" id="d-needed-by"/>
+          </div>
+        </div>
+
+        <!-- Resolved fields -->
+        <div class="decision-resolved" id="d-resolved-fields">
+          <div class="field">
+            <label>What was decided?</label>
+            <textarea id="d-resolution" rows="3" placeholder="e.g. Owner confirmed Hardie lap siding in Iron Gray, 6-inch exposure. Ordered. Delivery expected July 12."></textarea>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="decision-submit-btn" onclick="submitLog('decision')" disabled
+          style="opacity:0.4;cursor:not-allowed;">
+          Select a status above
+        </button>
+      </div>
+
+      <!-- ── CHANGE ORDER ── -->
+      <div id="form-changeorder" class="form-card" style="display:none;">
+        <div class="form-card-title co-title">📝 Change Order</div>
+        <div class="field">
+          <label>What is changing?</label>
+          <textarea id="co-description" rows="3" placeholder="e.g. Owner requested an additional recessed lighting circuit in the primary bedroom. Not included in original scope."></textarea>
+        </div>
+        <div class="field">
+          <label>Reason for change</label>
+          <select id="co-reason">
+            <option value="owner-request">Owner request</option>
+            <option value="design-change">Design change</option>
+            <option value="unforeseen-condition">Unforeseen site condition</option>
+            <option value="code-requirement">Code / inspection requirement</option>
+            <option value="material-substitution">Material substitution</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="co-amount-row">
+          <div class="field">
+            <label>Cost impact ($)</label>
+            <input type="number" id="co-cost" placeholder="e.g. 1400" min="0"/>
+          </div>
+          <div class="field">
+            <label>Schedule impact</label>
+            <select id="co-schedule">
+              <option value="none">None</option>
+              <option value="1-3 days">1–3 days</option>
+              <option value="4-7 days">4–7 days</option>
+              <option value="1-2 weeks">1–2 weeks</option>
+              <option value="2+ weeks">2+ weeks</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Approval status</label>
+            <select id="co-approval">
+              <option value="pending">Pending owner approval</option>
+              <option value="verbal">Verbally approved</option>
+              <option value="approved">Formally approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <button class="submit-btn co-btn" onclick="submitLog('changeorder')">Submit Change Order</button>
+      </div>
+
+      <!-- ── RISK ── -->
+      <div id="form-risk" class="form-card" style="display:none;">
+        <div class="form-card-title risk-title">⚠ Risk Log</div>
+        <label class="urgent-flag" for="risk-urgent">
+          <input type="checkbox" id="risk-urgent"/>
+          <div>
+            <div class="urgent-flag-label">🚨 Flag as Urgent</div>
+            <div class="urgent-flag-desc">Sends an immediate notification to Low Tide Ops. Use for anything that can't wait until Monday.</div>
+          </div>
+        </label>
+        <div class="field">
+          <label>Describe the risk</label>
+          <textarea id="r-description" rows="3" placeholder="e.g. Subcontractor for rough electrical may not be available during the scheduled window July 14–18."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Likelihood</label>
+            <select id="r-likelihood">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Impact if it occurs</label>
+            <select id="r-impact">
+              <option value="minor">Minor</option>
+              <option value="moderate" selected>Moderate</option>
+              <option value="significant">Significant</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Mitigation plan (if any)</label>
+          <textarea id="r-mitigation" rows="2" placeholder="e.g. Reaching out to backup sub. Will confirm by Thursday."></textarea>
+        </div>
+        <button class="submit-btn risk-btn" onclick="submitLog('risk')">Submit Risk Log</button>
+      </div>
+
+      <!-- ── ISSUE ── -->
+      <div id="form-issue" class="form-card" style="display:none;">
+        <div class="form-card-title issue-title">🚨 Issue Log</div>
+        <label class="urgent-flag" for="issue-urgent">
+          <input type="checkbox" id="issue-urgent"/>
+          <div>
+            <div class="urgent-flag-label">🚨 Flag as Urgent</div>
+            <div class="urgent-flag-desc">Sends an immediate notification to Low Tide Ops. Use for anything that can't wait until Monday.</div>
+          </div>
+        </label>
+        <div class="field">
+          <label>Describe the issue</label>
+          <textarea id="i-description" rows="3" placeholder="e.g. Water intrusion discovered in the northwest corner of the foundation. Needs structural assessment before framing continues."></textarea>
+        </div>
+        <div class="field">
+          <label>Severity</label>
+          <select id="i-severity">
+            <option value="low">Low — minor, can proceed</option>
+            <option value="medium" selected>Medium — addressing but not blocking</option>
+            <option value="high">High — blocking progress</option>
+            <option value="critical">Critical — work stopped</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Immediate action taken</label>
+          <textarea id="i-action" rows="2" placeholder="e.g. Work paused in that area. Structural engineer contacted. Assessment scheduled for tomorrow."></textarea>
+        </div>
+        <button class="submit-btn issue-btn" onclick="submitLog('issue')">Submit Issue Log</button>
+      </div>
+
+    </div><!-- /form-area -->
+
+    <!-- CONFIRMATION -->
+    <div id="confirm-msg">
+      <div class="confirm-title">✓ Log submitted</div>
+      <div class="confirm-detail" id="confirm-detail"></div>
+    </div>
+
+    <!-- RECENT LOGS -->
+    <div id="recent-section" style="display:none;">
+      <div class="section-label" style="margin-top:28px;">This session's logs</div>
+      <div id="recent-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PROJECT DIRECTORY — add one entry per project at onboarding
+// ============================================================
+const PROJECTS = [
+  {
+    pin:           "1234",
+    name:          "Harrington",
+    formUrl:       "https://docs.google.com/forms/d/e/YOUR_BUILDER_FORM_ID/formResponse",
+    entries: {
+      project:     "entry.1000000001",
+      logType:     "entry.1000000002",
+      details:     "entry.1000000003",
+      urgent:      "entry.1000000004",
+    },
+    urgentEmail:   "michael@lowtideops.com",
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentProject   = null;
+let selectedType     = null;
+let decisionStatus   = null;
+const recentLogs     = [];
+
+// ============================================================
+// GATE
+// ============================================================
+function attemptLogin() {
+  const pin     = document.getElementById('pin-input').value.trim();
+  const input   = document.getElementById('pin-input');
+  const err     = document.getElementById('gate-error');
+  const project = PROJECTS.find(p => p.pin === pin);
+
+  if (!project) {
+    input.classList.add('error');
+    err.textContent = 'Incorrect PIN — check with Low Tide Ops.';
+    setTimeout(() => { input.classList.remove('error'); err.textContent = ''; }, 3000);
+    return;
+  }
+
+  currentProject = project;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display  = 'block';
+  document.getElementById('app-project-name').textContent = project.name;
+  document.getElementById('app-date').textContent = new Date().toLocaleDateString('en-US',{
+    weekday:'short', month:'short', day:'numeric'
+  });
+
+
+}
+
+// ============================================================
+// LOG TYPE SELECTION
+// ============================================================
+function selectType(type) {
+  selectedType   = type;
+  decisionStatus = null;
+
+  ['progress','schedule','decision','changeorder','risk','issue'].forEach(t => {
+    document.getElementById('btn-' + t).classList.remove('active');
+    document.getElementById('form-' + t).style.display = 'none';
+  });
+
+  document.getElementById('btn-' + type).classList.add('active');
+  document.getElementById('form-area').style.display = 'block';
+  document.getElementById('form-' + type).style.display = 'block';
+  document.getElementById('confirm-msg').style.display  = 'none';
+
+  // Reset decision status UI
+  if (type === 'decision') {
+    document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('selected','pending-urgent','resolved-pill'));
+    document.getElementById('d-pending-fields').style.display  = 'none';
+    document.getElementById('d-resolved-fields').style.display = 'none';
+    const sb = document.getElementById('decision-submit-btn');
+    sb.disabled = true;
+    sb.style.opacity = '0.4';
+    sb.style.cursor  = 'not-allowed';
+    sb.textContent   = 'Select a status above';
+  }
+
+  setTimeout(() => {
+    document.getElementById('form-' + type).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ============================================================
+// DECISION STATUS PILLS
+// ============================================================
+function setDecisionStatus(status) {
+  decisionStatus = status;
+
+  document.querySelectorAll('.status-pill').forEach(p => {
+    p.classList.remove('selected','pending-urgent','resolved-pill');
+  });
+
+  const pilMap = {
+    'pending':          'pill-pending',
+    'pending-urgent':   'pill-pending-urgent',
+    'resolved-owner':   'pill-resolved-owner',
+    'resolved-builder': 'pill-resolved-builder',
+    'resolved-joint':   'pill-resolved-joint',
+  };
+
+  const pill = document.getElementById(pilMap[status]);
+  if (pill) {
+    pill.classList.add('selected');
+    if (status === 'pending-urgent') pill.classList.add('pending-urgent');
+    if (status.startsWith('resolved')) pill.classList.add('resolved-pill');
+  }
+
+  // Show/hide conditional fields
+  const isPending  = status === 'pending' || status === 'pending-urgent';
+  const isResolved = status.startsWith('resolved');
+  document.getElementById('d-pending-fields').style.display  = isPending  ? 'block' : 'none';
+  document.getElementById('d-resolved-fields').style.display = isResolved ? 'block' : 'none';
+
+  // Enable submit
+  const sb = document.getElementById('decision-submit-btn');
+  sb.disabled = false;
+  sb.style.opacity = '1';
+  sb.style.cursor  = 'pointer';
+  sb.textContent   = isPending ? 'Submit — Flag for Owner Decision' : 'Submit — Log Resolved Decision';
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+function submitLog(type) {
+  const project = currentProject;
+  if (!project) return;
+
+  let details  = '';
+  let isUrgent = false;
+  let valid    = true;
+
+  if (type === 'progress') {
+    const update  = document.getElementById('p-update').value.trim();
+    const phase   = document.getElementById('p-phase').value;
+    const percent = document.getElementById('p-percent').value;
+    if (!update) { highlight('p-update'); return; }
+    details = `Phase: ${phase}\nProgress: ${percent ? percent + '%' : 'Not specified'}\nUpdate: ${update}`;
+
+  } else if (type === 'schedule') {
+    const update    = document.getElementById('s-update').value.trim();
+    const milestone = document.getElementById('s-milestone').value.trim();
+    const date      = document.getElementById('s-date').value;
+    const impact    = document.getElementById('s-impact').value;
+    if (!update) { highlight('s-update'); return; }
+    details = `Milestone: ${milestone || 'Not specified'}\nNew Date: ${date || 'Not specified'}\nImpact: ${impact}\nUpdate: ${update}`;
+
+  } else if (type === 'decision') {
+    if (!decisionStatus) return;
+    const item   = document.getElementById('d-item').value.trim();
+    const isPend = decisionStatus === 'pending' || decisionStatus === 'pending-urgent';
+    isUrgent = decisionStatus === 'pending-urgent';
+
+    if (isPend) {
+      const context   = document.getElementById('d-context').value.trim();
+      const neededBy  = document.getElementById('d-needed-by').value;
+      if (!context) { highlight('d-context'); return; }
+      details = `Item: ${item || 'Not specified'}\nStatus: Owner decision needed\nUrgent: ${isUrgent ? 'Yes — blocking progress' : 'No'}\nNeeded by: ${neededBy || 'Not specified'}\nContext: ${context}`;
+    } else {
+      const resolution = document.getElementById('d-resolution').value.trim();
+      const byMap = { 'resolved-owner':'Owner','resolved-builder':'Builder','resolved-joint':'Owner + Builder jointly' };
+      if (!resolution) { highlight('d-resolution'); return; }
+      details = `Item: ${item || 'Not specified'}\nStatus: Decision made by ${byMap[decisionStatus] || decisionStatus}\nResolution: ${resolution}`;
+    }
+
+  } else if (type === 'changeorder') {
+    const desc     = document.getElementById('co-description').value.trim();
+    const reason   = document.getElementById('co-reason').value;
+    const cost     = document.getElementById('co-cost').value;
+    const schedule = document.getElementById('co-schedule').value;
+    const approval = document.getElementById('co-approval').value;
+    if (!desc) { highlight('co-description'); return; }
+    details = `Description: ${desc}\nReason: ${reason}\nCost impact: ${cost ? '$' + Number(cost).toLocaleString() : 'Not specified'}\nSchedule impact: ${schedule}\nApproval: ${approval}`;
+
+  } else if (type === 'risk') {
+    const desc       = document.getElementById('r-description').value.trim();
+    const likelihood = document.getElementById('r-likelihood').value;
+    const impact     = document.getElementById('r-impact').value;
+    const mitigation = document.getElementById('r-mitigation').value.trim();
+    isUrgent = document.getElementById('risk-urgent').checked;
+    if (!desc) { highlight('r-description'); return; }
+    details = `Likelihood: ${likelihood}\nImpact: ${impact}\nDescription: ${desc}\nMitigation: ${mitigation || 'None logged'}`;
+
+  } else if (type === 'issue') {
+    const desc     = document.getElementById('i-description').value.trim();
+    const severity = document.getElementById('i-severity').value;
+    const action   = document.getElementById('i-action').value.trim();
+    isUrgent = document.getElementById('issue-urgent').checked;
+    if (!desc) { highlight('i-description'); return; }
+    details = `Severity: ${severity}\nDescription: ${desc}\nAction taken: ${action || 'None logged'}`;
+  }
+
+  const fullDetails = details + (isUrgent ? '\n\n⚠ FLAGGED AS URGENT' : '');
+
+  // POST to Google Form
+  if (project.formUrl && !project.formUrl.includes('YOUR_BUILDER_FORM_ID')) {
+    const params = new URLSearchParams();
+    params.set(project.entries.project,  project.name);
+    params.set(project.entries.logType,  type);
+    params.set(project.entries.details,  fullDetails);
+    params.set(project.entries.urgent,   isUrgent ? 'YES' : 'NO');
+    fetch(project.formUrl + '?' + params.toString(), { method:'POST', mode:'no-cors' }).catch(()=>{});
+  }
+
+  // Local log
+  recentLogs.unshift({ type, details: fullDetails, timestamp: new Date().toISOString(), urgent: isUrgent });
+  updateRecentLogs();
+
+  // Confirm
+  const conf = document.getElementById('confirm-msg');
+  document.getElementById('confirm-detail').textContent = isUrgent
+    ? 'Flagged as urgent — Low Tide Ops has been notified.'
+    : 'Logged and queued for Monday briefing.';
+  conf.style.display = 'block';
+
+  // Reset
+  resetForm(type);
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('btn-' + type).classList.remove('active');
+  selectedType   = null;
+  decisionStatus = null;
+  conf.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function highlight(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.borderColor = 'var(--risk)';
+  el.focus();
+  setTimeout(() => { el.style.borderColor = ''; }, 3000);
+}
+
+function resetForm(type) {
+  const form = document.getElementById('form-' + type);
+  if (!form) return;
+  form.querySelectorAll('input[type="text"],input[type="number"],input[type="date"],textarea').forEach(el => el.value = '');
+  form.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+}
+
+// ============================================================
+// RECENT LOGS
+// ============================================================
+const typeLabels = {
+  progress:'Progress', schedule:'Schedule', decision:'Decision',
+  changeorder:'Change Order', risk:'Risk', issue:'Issue',
+};
+
+function updateRecentLogs() {
+  if (!recentLogs.length) return;
+  document.getElementById('recent-section').style.display = 'block';
+  document.getElementById('recent-list').innerHTML = recentLogs.map(log => {
+    const ts        = new Date(log.timestamp).toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', hour12:true });
+    const firstLine = log.details.split('\n').filter(l => l.includes(':'))[0]?.split(':').slice(1).join(':').trim() || '';
+    const badgeType = log.type === 'changeorder' ? 'changeorder' : log.type;
+    return `
+      <div class="log-item">
+        <span class="log-item-badge badge-${badgeType}">${typeLabels[log.type]}${log.urgent ? ' 🚨' : ''}</span>
+        <div class="log-item-body">
+          <div class="log-item-text">${firstLine}</div>
+          <div class="log-item-meta">Submitted ${ts}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Enter key on PIN
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') attemptLogin();
+});
+</script>
+</body>
+</html>
